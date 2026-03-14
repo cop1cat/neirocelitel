@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Кластеризация — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ]})"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="index.html" class="active">Классический ML</a>
+        <a href="../neural-nets/index.html">Нейросети</a>
+        <a href="../os/index.html">ОС</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="intro.html">Введение</a></li>
+                    <li><a href="metrics.html">Метрики качества</a></li>
+                    <li><a href="linear-models.html">Линейные модели</a></li>
+                    <li><a href="loss-functions.html">Функции потерь</a></li>
+                    <li><a href="decision-trees.html">Решающие деревья</a></li>
+                    <li><a href="bias-variance.html">Bias-Variance</a></li>
+                    <li><a href="ensembles.html">Бэггинг и Random Forest</a></li>
+                    <li><a href="boosting.html">Градиентный бустинг</a></li>
+                    <li><a href="boosting-libs.html">CatBoost, LightGBM, XGBoost</a></li>
+                    <li><a href="clustering.html">Кластеризация</a></li>
+                    <li><a href="validation.html">Валидация и интерпретируемость</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Кластеризация</h2>
+
+                <h3>Постановка задачи</h3>
+                <p>Дана выборка \(\mathbb{X} = (x_i)_{i=1}^\ell\) без меток. Хотим построить модель \(a: \mathbb{X} \to \{1, \dots, K\}\) такую, что похожие объекты попадают в один кластер: \(x_i \sim x_j \implies a(x_i) = a(x_j)\).</p>
+
+                <p>Типы кластеризации:</p>
+                <ul class="content-list">
+                    <li><strong>Hard clustering</strong> — каждый объект принадлежит ровно одному кластеру.</li>
+                    <li><strong>Soft clustering</strong> — каждому объекту присваивается вероятность принадлежности к каждому кластеру.</li>
+                </ul>
+
+                <p>Зачем нужна кластеризация:</p>
+                <ul class="content-list">
+                    <li>Разведочный анализ данных.</li>
+                    <li>Генерация признаков.</li>
+                    <li>Квантизация — уменьшение размера пространства признака.</li>
+                    <li>Продуктовые задачи (кластеризация новостей, сегментация пользователей).</li>
+                </ul>
+
+                <h3>Метрики качества кластеризации</h3>
+                <div class="note-block">
+                    Лучший способ оценить кластеризацию — посмотреть глазами. Формальные метрики дополняют, но не заменяют визуальный анализ.
+                </div>
+
+                <h4>Внутрикластерное расстояние</h4>
+                <p>\[\sum_{k=1}^K \sum_{i=1}^\ell [a(x_i) = k]\, \rho(x_i, c_k) \to \min\]</p>
+                <p>где \(c_k\) — центр \(k\)-го кластера. Чем меньше — тем компактнее кластеры.</p>
+
+                <h4>Межкластерное расстояние</h4>
+                <p>\[\sum_{i \neq j} [a(x_i) \neq a(x_j)]\, \rho(x_i, x_j) \to \max\]</p>
+                <p>Чем больше — тем лучше кластеры разделены.</p>
+
+                <h4>Индекс Данна</h4>
+                <p>Объединяет обе метрики:</p>
+                <p>\[\frac{\min_{1 \leq k < k' \leq K} \alpha(k, k')}{\max_{1 \leq k \leq K} \alpha(k)} \to \max\]</p>
+                <p>где \(\alpha(k, k')\) — расстояние между кластерами, \(\alpha(k)\) — внутрикластерное расстояние.</p>
+
+                <h3>Выбор числа кластеров</h3>
+
+                <h4>Метод локтя (Elbow Method)</h4>
+                <p>Строим график внутрикластерного расстояния от числа кластеров \(K\). Оптимальное \(K\) — в точке «локтя», где прирост качества резко замедляется.</p>
+
+                <h3>K-Means</h3>
+                <p>\(K\) — гиперпараметр. Минимизируем:</p>
+                <p>\[\sum_{k=1}^K \sum_{i=1}^\ell [a(x_i) = k]\, \rho(x_i, c_k) \to \min\]</p>
+                <p>Мы не знаем ни центры, ни предсказания — поэтому оптимизируем поочерёдно:</p>
+                <ul class="content-list">
+                    <li><strong>Шаг 0:</strong> инициализируем центры (например, K-Means++).</li>
+                    <li><strong>Шаг а:</strong> фиксируем \(c_k\), назначаем объекты: \(a(x_i) = \mathop{\text{argmin}}_{k} \rho(x_i, c_k)\).</li>
+                    <li><strong>Шаг б:</strong> фиксируем \(a(x_i)\), пересчитываем центры: при евклидовом расстоянии \(c_k = \frac{1}{\sum [a(x_i)=k]} \sum [a(x_i)=k]\, x_i\).</li>
+                    <li>Повторяем до сходимости (сходимость гарантируется).</li>
+                </ul>
+
+                <table class="compare-table">
+                    <tr>
+                        <th>Плюсы</th>
+                        <th>Минусы</th>
+                    </tr>
+                    <tr>
+                        <td>Быстрый</td>
+                        <td>Зависит от инициализации</td>
+                    </tr>
+                    <tr>
+                        <td>Легко параллелится</td>
+                        <td>Признаки разного масштаба могут всё сломать</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>Кластеры только эллиптической формы</td>
+                    </tr>
+                </table>
+
+                <h3>Иерархический подход</h3>
+                <p><strong>Шаг 1:</strong> каждый объект — отдельный кластер: \(C_{(1)} = \{\{x_1\}, \dots, \{x_\ell\}\}\).</p>
+                <p><strong>Шаг j:</strong> склеиваем два ближайших кластера:</p>
+                <p>\[(m, n) = \mathop{\text{argmin}}_{1 \leq m < n \leq \ell - j + 1} d(X_m, X_n)\]</p>
+                <p>Метрику \(d\) между кластерами выбираем сами (single linkage, complete linkage, average linkage и др.). Результат — дендрограмма, из которой можно получить разбиение на любое число кластеров.</p>
+                <div class="note-block">
+                    Иерархическую кластеризацию можно применять для понижения размерности: кластеризуем признаковое пространство, а не объекты.
+                </div>
+
+                <h3>DBSCAN</h3>
+                <p>Алгоритм, основанный на плотности. Плотность точки \(x\) — число точек в её \(\varepsilon\)-окрестности.</p>
+                <p>Типы точек:</p>
+                <ul class="content-list">
+                    <li><strong>Внутренние (Core points)</strong> — в окрестности \(\varepsilon\) не менее \(\text{minPts}\) точек.</li>
+                    <li><strong>Граничные (Border points)</strong> — в окрестности меньше \(\text{minPts}\), но достижимы из внутренней точки.</li>
+                    <li><strong>Шумовые (Noise points)</strong> — не достижимы ни из одной внутренней точки.</li>
+                </ul>
+                <div class="tip-block">
+                    DBSCAN не требует задавать число кластеров заранее и находит кластеры произвольной формы. Шумовые точки автоматически отфильтровываются.
+                </div>
+
+                <h3>EM-кластеризация</h3>
+                <p>Мягкая кластеризация на основе смеси распределений:</p>
+                <p>\[p(x) = \sum_{k=1}^n p_k(x)\, \pi_k\]</p>
+                <p>где \(p_k(x)\) — функция распределения \(k\)-й компоненты, \(\pi_k\) — вес компоненты.</p>
+                <p>Алгоритм чередует два шага:</p>
+                <ul class="content-list">
+                    <li><strong>E-шаг:</strong> вычисляем вероятности принадлежности каждого объекта к каждому кластеру.</li>
+                    <li><strong>M-шаг:</strong> пересчитываем параметры распределений (среднее, дисперсию) и веса компонент.</li>
+                </ul>
+                <p>В отличие от K-Means, EM выдаёт вероятности принадлежности, а не жёсткие метки.</p>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; 2026 НейроЦелитель</div>
+</div>
+</body>
+</html>

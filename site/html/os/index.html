@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Операционные системы — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="../classical-ml/index.html">Классический ML</a>
+        <a href="../neural-nets/index.html">Нейросети</a>
+        <a href="index.html" class="active">ОС</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="unix-basics.html">Основы UNIX</a></li>
+                    <li><a href="processes.html">Процессы</a></li>
+                    <li><a href="filesystem.html">Файловая система</a></li>
+                    <li><a href="ipc.html">IPC</a></li>
+                    <li><a href="sockets.html">Сокеты</a></li>
+                    <li><a href="shell.html">Shell</a></li>
+                    <li><a href="windows-nt.html">Windows NT</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Операционные системы</h2>
+                <ul class="theory-list">
+                    <li>
+                        <a href="unix-basics.html">Основы UNIX</a>
+                        <span>Характеристики, структура Linux, состояния ОС, принципы современных ОС</span>
+                    </li>
+                    <li>
+                        <a href="processes.html">Процессы</a>
+                        <span>Системные вызовы: fork, exec, wait, exit, работа с файлами</span>
+                    </li>
+                    <li>
+                        <a href="filesystem.html">Файловая система</a>
+                        <span>Типы файлов, inode, таблица дескрипторов, системные вызовы</span>
+                    </li>
+                    <li>
+                        <a href="ipc.html">Межпроцессное взаимодействие (IPC)</a>
+                        <span>Очереди сообщений, семафоры, разделяемая память</span>
+                    </li>
+                    <li>
+                        <a href="sockets.html">Сокеты</a>
+                        <span>AF_UNIX, AF_INET, клиент-сервер, TCP/UDP</span>
+                    </li>
+                    <li>
+                        <a href="shell.html">Shell</a>
+                        <span>Интерпретаторы, переменные, метасимволы, скрипты, арифметика</span>
+                    </li>
+                    <li>
+                        <a href="windows-nt.html">Архитектура Windows NT</a>
+                        <span>HAL, микроядро, исполнительная система, диспетчеры</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; <span id="year"></span> НейроЦелитель</div>
+    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</div>
+</body>
+</html>

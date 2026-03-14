@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Введение в ML — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ]})"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="index.html" class="active">Классический ML</a>
+        <a href="../neural-nets/index.html">Нейросети</a>
+        <a href="../os/index.html">ОС</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="intro.html">Введение</a></li>
+                    <li><a href="intro.html">Введение</a></li>
+                    <li><a href="linear-models.html">Линейные модели</a></li>
+                    <li><a href="loss-functions.html">Функции потерь</a></li>
+                    <li><a href="decision-trees.html">Решающие деревья</a></li>
+                    <li><a href="bias-variance.html">Bias-Variance</a></li>
+                    <li><a href="ensembles.html">Бэггинг и Random Forest</a></li>
+                    <li><a href="boosting.html">Градиентный бустинг</a></li>
+                    <li><a href="boosting-libs.html">CatBoost, LightGBM, XGBoost</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Введение в машинное обучение</h2>
+
+                <p>Машинное обучение — это раздел искусственного интеллекта, в котором модели обучаются на данных, а не программируются вручную. Вместо того чтобы прописывать правила, мы показываем модели примеры и она сама находит закономерности.</p>
+
+                <h3>Что такое модель</h3>
+                <p>Модель — это функция \(a: \mathbb{X} \to \mathbb{Y}\), которая по объекту \(x \in \mathbb{X}\) выдаёт предсказание \(y \in \mathbb{Y}\). Задача обучения — найти такую функцию, которая хорошо обобщается на новых данных.</p>
+
+                <h3>Три типа задач</h3>
+                <table class="compare-table">
+                    <tr>
+                        <th>Тип</th>
+                        <th>Что предсказываем</th>
+                        <th>Пример</th>
+                    </tr>
+                    <tr>
+                        <td>Регрессия</td>
+                        <td>Вещественное число \(y \in \mathbb{R}\)</td>
+                        <td>Цена квартиры, температура завтра</td>
+                    </tr>
+                    <tr>
+                        <td>Классификация</td>
+                        <td>Метка класса \(y \in \{1, \dots, K\}\)</td>
+                        <td>Спам или не спам, кот или собака</td>
+                    </tr>
+                    <tr>
+                        <td>Ранжирование</td>
+                        <td>Порядок объектов</td>
+                        <td>Поисковая выдача, рекомендации</td>
+                    </tr>
+                </table>
+
+                <h3>Как модель обучается</h3>
+                <p>Есть обучающая выборка \(\mathbb{X} = \{(x_i, y_i)\}_{i=1}^\ell\). Мы выбираем функцию потерь \(L(y, a(x))\), которая показывает, насколько плохо модель ошибается на одном объекте, и минимизируем суммарную ошибку:</p>
+                <p>\[Q(a) = \frac{1}{\ell} \sum_{i=1}^\ell L(y_i, a(x_i)) \to \min_a\]</p>
+
+                <h3>Обобщение и переобучение</h3>
+                <p>Главный вопрос ML — не насколько хорошо модель работает на обучающей выборке, а насколько хорошо она работает на новых данных.</p>
+                <ul class="content-list">
+                    <li><strong>Недообучение (underfitting)</strong> — модель слишком проста и не улавливает закономерности даже на обучении.</li>
+                    <li><strong>Переобучение (overfitting)</strong> — модель запомнила обучающую выборку, но плохо обобщается.</li>
+                </ul>
+                <div class="tip-block">
+                    Чтобы честно оценить качество модели, данные делят на train, validation и test. Модель обучается на train, гиперпараметры подбираются на validation, итоговая оценка — на test, который трогают только один раз.
+                </div>
+
+                <h3>Метрики качества</h3>
+                <p>Функция потерь используется при обучении, метрики — для оценки результата. Они могут не совпадать.</p>
+                <table class="compare-table">
+                    <tr>
+                        <th>Задача</th>
+                        <th>Популярные метрики</th>
+                    </tr>
+                    <tr>
+                        <td>Регрессия</td>
+                        <td>MSE, MAE, RMSE, \(R^2\)</td>
+                    </tr>
+                    <tr>
+                        <td>Бинарная классификация</td>
+                        <td>Accuracy, Precision, Recall, F1, AUC-ROC</td>
+                    </tr>
+                    <tr>
+                        <td>Многоклассовая классификация</td>
+                        <td>Macro/Micro F1, Accuracy</td>
+                    </tr>
+                </table>
+
+                <h3>Что дальше</h3>
+                <p>В этом разделе мы последовательно разберём основные модели классического ML — от линейной регрессии до градиентного бустинга. Каждая тема строится на предыдущей, поэтому рекомендуем читать по порядку.</p>
+
+                <div class="note-block">
+                    Классический ML хорошо работает на табличных данных с явными признаками. Для изображений, текста и звука чаще используют нейросети — см. раздел <a href="../neural-nets/index.html" style="color: #154360;">Нейросети</a>.
+                </div>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; 2026 НейроЦелитель</div>
+</div>
+</body>
+</html>

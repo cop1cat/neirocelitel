@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Функции потерь — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ]})"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="index.html" class="active">Классический ML</a>
+        <a href="../neural-nets/index.html">Нейросети</a>
+        <a href="../os/index.html">ОС</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="intro.html">Введение</a></li>
+                    <li><a href="metrics.html">Метрики качества</a></li>
+                    <li><a href="linear-models.html">Линейные модели</a></li>
+                    <li><a href="loss-functions.html">Функции потерь</a></li>
+                    <li><a href="decision-trees.html">Решающие деревья</a></li>
+                    <li><a href="bias-variance.html">Bias-Variance</a></li>
+                    <li><a href="ensembles.html">Бэггинг и Random Forest</a></li>
+                    <li><a href="boosting.html">Градиентный бустинг</a></li>
+                    <li><a href="boosting-libs.html">CatBoost, LightGBM, XGBoost</a></li>
+                    <li><a href="clustering.html">Кластеризация</a></li>
+                    <li><a href="validation.html">Валидация и интерпретируемость</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Функции потерь</h2>
+
+                <h3>Задача оценки вероятностей</h3>
+                <p>Хотим, чтобы модель выдавала не просто класс, а уверенность в своём ответе. Например, \(a(x) = +1\) с уверенностью 80% означает: среди всех объектов, которым модель даёт 80%, реально положительных должно быть 80%.</p>
+                <p>Зачем это нужно:</p>
+                <ul class="content-list">
+                    <li>Гибкий выбор порога. Если \(b(x) \geq 90\%\) — звоним клиенту, иначе нет.</li>
+                    <li>Ранжирование объектов по уверенности (например, в задаче баннерной рекламы).</li>
+                </ul>
+
+                <p>Формализуем: \(b(x) = \sigma(\langle w, x \rangle) \in (0; 1)\), где \(\sigma(z) = \frac{1}{1 + e^{-z}}\).</p>
+
+                <div class="note-block">
+                    <strong>Корректность оценки.</strong> \(b(x)\) корректно оценивает вероятности, если для любого \(p\) среди всех объектов \(x\) с \(b(x) = p\) доля положительных равна \(p\).
+                </div>
+
+                <h3>Требование к функции потерь</h3>
+                <p>При \(n \to \infty\) на группе одинаковых объектов получаем:</p>
+                <p>\[\mathop{\text{argmin}}_{b \in [0;1]} \mathbb{E}_y(L(y, b) \mid x) = P(y = +1 \mid x) \quad \forall x \in \mathbb{X}\]</p>
+                <p>То есть минимум ожидаемой потери должен достигаться именно в истинной вероятности положительного класса.</p>
+
+                <h3>MSE</h3>
+                <p>\[L(y, z) = (b - [y = +1])^2\]</p>
+                <p>Берём производную по \(b\) и приравниваем к нулю:</p>
+                <p>\[\frac{\partial}{\partial b} \mathbb{E}_y(b - [y=+1])^2 = 2p(b-1) + 2b(1-p) = 0 \implies b = P(y=+1 \mid x)\]</p>
+                <p>MSE формально удовлетворяет требованию. Однако на практике это плохой выбор: из-за горизонтальных асимптот сигмоиды производная в крайних точках очень мала, хотя ошибка может быть большой.</p>
+
+                <h3>MAE</h3>
+                <p>Для MAE требование к корректной оценке вероятностей не выполняется.</p>
+
+                <h3>Log-loss (Binary Cross Entropy)</h3>
+                <p>Выведем функцию потерь из вероятностных соображений. Каждый ответ \(y_i\) — случайная величина из распределения Бернулли. Запишем функцию максимального правдоподобия:</p>
+                <p>\[L = \prod_{i=1}^\ell b(x_i)^{[y_i=+1]} (1 - b(x_i))^{[y_i=-1]} \to \max\]</p>
+                <p>Логарифмируем и берём с минусом (минимизируем):</p>
+                <p>\[\text{log-loss} = \sum_{i=1}^\ell \left( -[y_i=+1] \log b(x_i) - [y_i=-1] \log(1 - b(x_i)) \right) \to \min\]</p>
+                <p>Для сигмоиды \(b(x) = \sigma(\langle w, x \rangle)\) это сводится к логистической функции потерь:</p>
+                <p>\[L(y, z) = \log(1 + e^{-yz})\]</p>
+
+                <div class="tip-block">
+                    Для log-loss требование корректной оценки вероятностей выполняется.
+                </div>
+
+                <h3>Hinge loss и SVM</h3>
+                <p>Кусочно-линейная функция потерь:</p>
+                <p>\[\bar{L}(\mu) = \max(0, 1 - \mu)\]</p>
+
+                <h4>Линейно-разделимый случай</h4>
+                <p>Введём требование нормировки: \(\min_{x_i \in \mathbb{X}} |\langle w, x_i \rangle + w_0| = 1\). Тогда расстояние от гиперплоскости до ближайшего объекта равно \(\frac{1}{\|w\|}\). Максимизация отступа приводит к задаче:</p>
+                <p>\[\begin{cases} \|w\|^2 \to \min_{w, w_0} \\ y_i (\langle w, x_i \rangle + w_0) \geq 1 \quad \forall i \end{cases}\]</p>
+
+                <h4>Линейно-неразделимый случай</h4>
+                <p>Вводим переменные ослабления \(\xi_i \geq 0\):</p>
+                <p>\[\begin{cases} \frac{1}{2}\|w\|^2 + C \sum_{i=1}^n \xi_i \to \min_{w, w_0, \xi_i} \\ y_i(\langle w, x_i \rangle + w_0) \geq 1 - \xi_i \end{cases}\]</p>
+                <p>Здесь \(C\) — штраф за ошибки, \(\frac{1}{2}\|w\|^2\) — штраф за малый отступ. После подстановки оптимального \(\xi_i = \max(0, 1 - y_i(\langle w, x \rangle + w_0))\) получаем безусловную задачу оптимизации — SVM в общем виде.</p>
+                <div class="note-block">
+                    Используется L1-норма по \(\xi_i\), а не L2, чтобы вектор ошибок был разреженным: выгоднее делать больше правильных предсказаний с небольшим числом ошибок, чем равномерно уменьшать суммарную ошибку.
+                </div>
+
+                <h3>Сравнение SVM и логистической регрессии</h3>
+                <table class="compare-table">
+                    <tr>
+                        <th>Свойство</th>
+                        <th>SVM (hinge)</th>
+                        <th>Логистическая регрессия (log-loss)</th>
+                    </tr>
+                    <tr>
+                        <td>При \(\mu &lt; 0\)</td>
+                        <td>Одинаковое поведение</td>
+                        <td>Одинаковое поведение</td>
+                    </tr>
+                    <tr>
+                        <td>При \(\mu &gt; 0\)</td>
+                        <td>Достаточно \(\mu \geq 1\)</td>
+                        <td>Стремится \(\mu \to +\infty\)</td>
+                    </tr>
+                    <tr>
+                        <td>Цель</td>
+                        <td>Максимизация отступа, лучшие метрики классификации</td>
+                        <td>Предсказание вероятностей</td>
+                    </tr>
+                </table>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; 2026 НейроЦелитель</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Рекомендательные системы — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ]})"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="../classical-ml/index.html">Классический ML</a>
+        <a href="index.html" class="active">Нейросети</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="intro.html">Полносвязные сети</a></li>
+                    <li><a href="cnn.html">CNN</a></li>
+                    <li><a href="yolo.html">YOLO</a></li>
+                    <li><a href="rnn.html">RNN и LSTM</a></li>
+                    <li><a href="transformer.html">Transformer</a></li>
+                    <li><a href="distillation.html">Дистилляция знаний</a></li>
+                    <li><a href="recsys.html">Рекомендательные системы</a></li>
+                    <li><a href="nlp.html">Работа с текстом</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Рекомендательные системы</h2>
+
+                <h3>Общая схема</h3>
+                <p>Рекомендательная система работает в цикле: формируем список кандидатов → отбираем → ранжируем моделью → предлагаем → наблюдаем за взаимодействием → обновляем модель. Основная идея двухэтапного подхода: сначала снижаем число кандидатов, потом ранжируем.</p>
+
+                <h3>Формальная постановка</h3>
+                <p>\(U\) — множество пользователей, \(I\) — множество объектов. Для некоторых пар известен рейтинг: \((u, i) \to r_{ui}\). Матрица рейтингов \(R = \{(u, i, r_{ui})\}\) разреженная.</p>
+                <p>Задача: построить модель \(a(u, i) \approx r_{ui}\).</p>
+
+                <p>Типы обратной связи:</p>
+                <ul class="content-list">
+                    <li><strong>Явные (Explicit)</strong> — лайки, оценки, отзывы.</li>
+                    <li><strong>Неявные (Implicit)</strong> — добавление в корзину, время чтения, просмотр.</li>
+                </ul>
+
+                <h3>Коллаборативная фильтрация</h3>
+                <p>Идея: для рекомендации используем то, как пользователь взаимодействовал с объектами.</p>
+
+                <h4>Memory-based CF</h4>
+                <p>Находим похожих пользователей через метрику схожести. Через корреляцию Пирсона:</p>
+                <p>\[w_{uv} = \frac{\sum_{i \in I_{uv}} (r_{ui} - \bar{r}_u)(r_{vi} - \bar{r}_v)}{\sqrt{\sum_{i \in I_{uv}} (r_{ui} - \bar{r}_u)^2} \cdot \sqrt{\sum_{i \in I_{uv}} (r_{vi} - \bar{r}_v)^2}}\]</p>
+                <p>Коллаборация пользователя \(u_0\): \(U_{(u_0)} = \{v \in U \mid w_{v, u_0} > \alpha\}\). Предсказание рейтинга объекта \(i\):</p>
+                <p>\[p_i = \frac{\sum_{v \in U_{(u_0)}} [\exists r_{vi}] \cdot r_{vi}}{\sum_{v \in U_{(u_0)}} [\exists r_{vi}]}\]</p>
+                <div class="note-block">
+                    Корреляция Пирсона учитывает отклонения от среднего — это важно, так как средний пользователь иначе получает средние рекомендации.
+                </div>
+
+                <h4>Item-based CF</h4>
+                <p>То же самое, но вместо схожести пользователей — схожесть объектов. Плюсы: простота. Минусы: медленно, много памяти, нельзя обучать.</p>
+
+                <h3>Latent Factor Models</h3>
+                <p>Разложение матрицы рейтингов на скрытые факторы: \(R \approx P \cdot Q^T\), где \(P\) — матрица пользователей, \(Q\) — матрица объектов в пространстве скрытых факторов. Обучается через SGD.</p>
+
+                <h3>Сессионные рекомендации</h3>
+                <p>Сессия \(s = (o_1, \dots, o_n)\), где \(o_i = (v_j, a_k)\) — объект и тип взаимодействия. Задача:</p>
+                <p>\[\hat{s} = \mathop{\text{argmax}}_{s \in S,\, c \in C} f(s, c)\]</p>
+
+                <table class="compare-table">
+                    <tr>
+                        <th>Метод</th>
+                        <th>Идея</th>
+                        <th>Учитывает порядок?</th>
+                    </tr>
+                    <tr>
+                        <td>Associative Scores (AS)</td>
+                        <td>Доля пользователей, взаимодействовавших с парой объектов</td>
+                        <td>Нет</td>
+                    </tr>
+                    <tr>
+                        <td>Sequential Rules (SR)</td>
+                        <td>Учитывает близость взаимодействий \(\frac{1}{|i - j|}\)</td>
+                        <td>Да</td>
+                    </tr>
+                    <tr>
+                        <td>Markov Chains (MC)</td>
+                        <td>\(P(v_i \to v_j) = \frac{\text{freq}(v_i \to v_j)}{\sum_{v_t} \text{freq}(v_i \to v_t)}\)</td>
+                        <td>Да, строго</td>
+                    </tr>
+                </table>
+
+                <div class="warn-block">
+                    Марковские цепи требуют строгой упорядоченности данных — это не всегда достижимо на практике.
+                </div>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; 2026 НейроЦелитель</div>
+</div>
+</body>
+</html>

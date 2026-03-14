@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Валидация и интерпретируемость — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ]})"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="index.html" class="active">Классический ML</a>
+        <a href="../neural-nets/index.html">Нейросети</a>
+        <a href="../os/index.html">ОС</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="intro.html">Введение</a></li>
+                    <li><a href="metrics.html">Метрики качества</a></li>
+                    <li><a href="linear-models.html">Линейные модели</a></li>
+                    <li><a href="loss-functions.html">Функции потерь</a></li>
+                    <li><a href="decision-trees.html">Решающие деревья</a></li>
+                    <li><a href="bias-variance.html">Bias-Variance</a></li>
+                    <li><a href="ensembles.html">Бэггинг и Random Forest</a></li>
+                    <li><a href="boosting.html">Градиентный бустинг</a></li>
+                    <li><a href="boosting-libs.html">CatBoost, LightGBM, XGBoost</a></li>
+                    <li><a href="clustering.html">Кластеризация</a></li>
+                    <li><a href="validation.html">Валидация и интерпретируемость</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Валидация и интерпретируемость</h2>
+
+                <h3>Переобучение</h3>
+                <p>Если ошибка на новых данных значительно больше ошибки на обучающей выборке — это переобучение. Модель запомнила обучающие примеры вместо того, чтобы выучить закономерность.</p>
+
+                <h3>Отложенная выборка (Hold-out)</h3>
+                <p>Простейший способ оценить обобщающую способность: делим данные на train и test, обучаем на train, оцениваем на test. Test трогаем только один раз.</p>
+
+                <h3>Кросс-валидация</h3>
+                <p>Делим выборку на \(k\) равных частей. Поочерёдно каждая часть становится тестовой, остальные — обучающими. Итоговая оценка — среднее по \(k\) экспериментам.</p>
+                <p>При \(k = \ell\) получаем <strong>Leave-One-Out (LOO)</strong>.</p>
+
+                <p>После подбора гиперпараметров итоговую модель можно обучить двумя способами:</p>
+                <ul class="content-list">
+                    <li>Усреднить предсказания \(k\) моделей: \(a(x) = \frac{1}{k} \sum_{i=1}^k a_i(x)\).</li>
+                    <li>Обучить финальную модель на всех данных.</li>
+                </ul>
+
+                <div class="note-block">
+                    При большой выборке кросс-валидация даёт мало пользы — выброс одного объекта незначителен. Кросс-валидация требует обучить модель \(k\) раз.
+                </div>
+
+                <h3>Важность признаков</h3>
+
+                <h4>Линейные модели</h4>
+                <p>Значимость признака оценивается по его весу \(w_j\). Это работает только при нормированных и некоррелированных признаках. Нормированный вес:</p>
+                <p>\[w^* = \frac{\text{std}(x_j)}{\text{std}(y)} \cdot w_j\]</p>
+                <div class="note-block">
+                    Корреляция не обнаруживает нелинейные зависимости между признаками.
+                </div>
+
+                <h4>Деревья и ансамбли</h4>
+                <p>Важность признака — суммарное снижение impurity (дисперсии, энтропии, индекса Джини) по всем сплитам, где использовался этот признак. Деревья и Random Forest хорошо интерпретируются. Бустинги — сложнее.</p>
+
+                <h4>Бустинги: permutation importance</h4>
+                <p>Два подхода:</p>
+                <ul class="content-list">
+                    <li>Удалить признак и посмотреть на изменение качества.</li>
+                    <li>Зашумить признак и посмотреть на изменение качества (используется чаще).</li>
+                </ul>
+
+                <h3>LIME</h3>
+                <p>Local Interpretable Model-agnostic Explanations. Идея: для каждого объекта \(x\) строим простую интерпретируемую модель \(g\), которая локально аппроксимирует сложную модель \(f\):</p>
+                <p>\[\xi(x) = \mathop{\text{argmin}}_{g \in G} \left( L(f, g, \pi_x) + \Omega(g) \right)\]</p>
+                <p>где \(\pi_x\) — окрестность точки \(x\), \(\Omega(g)\) — мера сложности модели \(g\).</p>
+                <div class="note-block">
+                    LIME объясняет предсказание локально — в окрестности конкретного объекта. Для другого объекта объяснение будет другим.
+                </div>
+
+                <h3>SHAP</h3>
+                <p>Shapley Additive Explanations. Использует значения Шепли из теории игр для оценки вклада каждого признака:</p>
+                <p>\[\phi_i = \sum_{S \subseteq F \setminus \{i\}} \frac{|S|!\,(|F| - |S| - 1)!}{|F|!} \left[ f_{S \cup \{i\}}(x_{S \cup \{i\}}) - f_S(x_S) \right]\]</p>
+                <p>Требования:</p>
+                <ul class="content-list">
+                    <li><strong>Local accuracy:</strong> \(f(x) = \phi_0 + \sum_{i=1}^n \phi_i x_i\)</li>
+                    <li><strong>Missingness:</strong> \(x_i = 0 \implies \phi_i = 0\)</li>
+                    <li><strong>Consistency:</strong> если признак стал важнее в новой модели, его SHAP-значение не уменьшится.</li>
+                </ul>
+                <div class="tip-block">
+                    SHAP особенно хорошо работает для деревьев и ансамблей из деревьев. Для нейросетей применяется через дифференцирование входа по выходу.
+                </div>
+
+                <h3>Target Encoding</h3>
+                <p>Для категориального признака \(x_j\) заменяем категорию средним значением таргета по объектам этой категории:</p>
+                <p>\[g(x_j, \mathbb{X}) = \frac{\sum_{i=1}^\ell [x_{ij} = x_j]\, y_i}{\sum_{i=1}^\ell [x_{ij} = x_j]}\]</p>
+                <div class="warn-block">
+                    Target Encoding приводит к переобучению: для редких категорий в признак записывается почти точное значение таргета (target leakage).
+                </div>
+
+                <p>Способы борьбы:</p>
+
+                <h4>1. Зашумление</h4>
+                <p>\[\bar{g}(x_j, \mathbb{X}) + \varepsilon, \quad \varepsilon \sim \mathcal{N}(0, \sigma^2)\]</p>
+
+                <h4>2. Сглаживание</h4>
+                <p>\[\bar{g}(x_j, \mathbb{X}) = \lambda(n(x_j)) \cdot \frac{\sum [x_{ij}=x_j] y_i}{\sum [x_{ij}=x_j]} + (1 - \lambda(n(x_j))) \cdot \frac{\sum y_i}{\ell}\]</p>
+                <p>где \(\lambda(n)\) — монотонно возрастающая функция \(\in [0; 1]\):</p>
+                <ul class="content-list">
+                    <li>\(n \gg 1 \implies \lambda(n) = 1\) — обычное значение счётчика.</li>
+                    <li>\(n \sim 1 \implies \lambda(n) < 1\) — добавляем глобальное среднее как регуляризацию.</li>
+                </ul>
+
+                <h4>3. Кросс-валидация</h4>
+                <p>Считаем Target Encoding на фолдах, исключая текущий объект из расчёта.</p>
+
+                <h4>4. Кодирование по времени (Ordered TS)</h4>
+                <p>Для кодирования объекта \(j\) используем только объекты с 1 по \((j-1)\)-й. Делаем несколько перемешиваний и усредняем. Именно этот подход используется по умолчанию в CatBoost.</p>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; 2026 НейроЦелитель</div>
+</div>
+</body>
+</html>

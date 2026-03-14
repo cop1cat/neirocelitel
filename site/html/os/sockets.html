@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Сокеты — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="../classical-ml/index.html">Классический ML</a>
+        <a href="../neural-nets/index.html">Нейросети</a>
+        <a href="index.html" class="active">ОС</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="unix-basics.html">Основы UNIX</a></li>
+                    <li><a href="processes.html">Процессы</a></li>
+                    <li><a href="filesystem.html">Файловая система</a></li>
+                    <li><a href="ipc.html">IPC</a></li>
+                    <li><a href="sockets.html">Сокеты</a></li>
+                    <li><a href="shell.html">Shell</a></li>
+                    <li><a href="windows-nt.html">Windows NT</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Сокеты</h2>
+
+                <h3>Виды сокетов</h3>
+                <table class="compare-table">
+                    <tr>
+                        <th>Домен</th>
+                        <th>Тип</th>
+                        <th>Описание</th>
+                    </tr>
+                    <tr>
+                        <td>AF_UNIX</td>
+                        <td>Локальный</td>
+                        <td>Адрес — путь в файловой системе</td>
+                    </tr>
+                    <tr>
+                        <td>AF_INET</td>
+                        <td>Сетевой</td>
+                        <td>Адрес — IP + порт</td>
+                    </tr>
+                </table>
+
+                <table class="compare-table">
+                    <tr>
+                        <th>Тип</th>
+                        <th>Протокол</th>
+                        <th>Особенности</th>
+                    </tr>
+                    <tr>
+                        <td>SOCK_STREAM</td>
+                        <td>TCP</td>
+                        <td>С установлением соединения, надёжная доставка</td>
+                    </tr>
+                    <tr>
+                        <td>SOCK_DGRAM</td>
+                        <td>UDP</td>
+                        <td>Без соединения, датаграммы</td>
+                    </tr>
+                    <tr>
+                        <td>SOCK_SEQPACKET</td>
+                        <td>—</td>
+                        <td>Последовательные пакеты с границами</td>
+                    </tr>
+                </table>
+
+                <h3>Модель клиент-сервер (SOCK_STREAM)</h3>
+                <table class="compare-table">
+                    <tr>
+                        <th>Сервер</th>
+                        <th>Клиент</th>
+                    </tr>
+                    <tr><td>socket()</td><td>socket()</td></tr>
+                    <tr><td>bind()</td><td>—</td></tr>
+                    <tr><td>listen()</td><td>—</td></tr>
+                    <tr><td>accept()</td><td>connect()</td></tr>
+                    <tr><td>recv() / send()</td><td>send() / recv()</td></tr>
+                    <tr><td>shutdown()</td><td>shutdown()</td></tr>
+                    <tr><td>close()</td><td>close()</td></tr>
+                </table>
+                <div class="note-block">
+                    Для датаграмм (SOCK_DGRAM) используются <code>sendto()</code> и <code>recvfrom()</code> без <code>listen()</code> и <code>accept()</code>.
+                </div>
+
+                <h3>Системные вызовы</h3>
+                <pre class="code-block">int socket(int domain, int type, int protocol);
+int bind(int fd, const struct sockaddr *addr, socklen_t len);
+int listen(int fd, int backlog);
+int connect(int fd, const struct sockaddr *addr, socklen_t len);
+int accept(int fd, struct sockaddr *addr, socklen_t *len);
+ssize_t send(int fd, const void *buf, size_t len, int flags);
+ssize_t recv(int fd, void *buf, size_t len, int flags);
+int shutdown(int fd, int how);
+int close(int fd);</pre>
+
+                <h4>Адресные структуры</h4>
+                <pre class="code-block">/* AF_UNIX */
+struct sockaddr_un {
+    sa_family_t sun_family;  /* AF_UNIX */
+    char sun_path[108];      /* путь к файлу сокета */
+};
+
+/* AF_INET */
+struct sockaddr_in {
+    sa_family_t sin_family;   /* AF_INET */
+    in_port_t sin_port;       /* порт (сетевой порядок байт) */
+    struct in_addr sin_addr;  /* IP-адрес */
+};</pre>
+
+                <h4>Вспомогательные функции</h4>
+                <pre class="code-block">uint16_t htons(uint16_t hostshort);  /* хост -> сеть (порт) */
+uint32_t htonl(uint32_t hostlong);   /* хост -> сеть (адрес) */
+in_addr_t inet_addr(const char *cp); /* строка IP -> число */</pre>
+
+                <h3>Пример TCP-сервера</h3>
+                <pre class="code-block">#include &lt;sys/socket.h&gt;
+#include &lt;netinet/in.h&gt;
+
+int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+struct sockaddr_in addr;
+addr.sin_family = AF_INET;
+addr.sin_port = htons(7900);
+addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+bind(fd, (struct sockaddr *)&addr, sizeof(addr));
+listen(fd, 5);
+
+int client = accept(fd, NULL, NULL);
+char buf[2048];
+int n = recv(client, buf, sizeof(buf)-1, 0);
+buf[n] = '\0';
+send(client, buf, n, 0);  /* эхо */
+
+shutdown(client, SHUT_RDWR);
+close(client);
+close(fd);</pre>
+
+                <h3>Shutdown — режимы закрытия</h3>
+                <table class="compare-table">
+                    <tr>
+                        <th>Флаг</th>
+                        <th>Значение</th>
+                        <th>Действие</th>
+                    </tr>
+                    <tr><td>SHUT_RD</td><td>0</td><td>Закрыть для чтения</td></tr>
+                    <tr><td>SHUT_WR</td><td>1</td><td>Закрыть для записи</td></tr>
+                    <tr><td>SHUT_RDWR</td><td>2</td><td>Закрыть полностью</td></tr>
+                </table>
+
+                <pre class="code-block">netstat -a   # показать все сокеты</pre>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; <span id="year"></span> НейроЦелитель</div>
+    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</div>
+</body>
+</html>

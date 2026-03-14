@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>YOLO — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ]})"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="../classical-ml/index.html">Классический ML</a>
+        <a href="index.html" class="active">Нейросети</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="intro.html">Полносвязные сети</a></li>
+                    <li><a href="cnn.html">CNN</a></li>
+                    <li><a href="yolo.html">YOLO</a></li>
+                    <li><a href="rnn.html">RNN и LSTM</a></li>
+                    <li><a href="transformer.html">Transformer</a></li>
+                    <li><a href="distillation.html">Дистилляция знаний</a></li>
+                    <li><a href="recsys.html">Рекомендательные системы</a></li>
+                    <li><a href="nlp.html">Работа с текстом</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>YOLO — детекция объектов</h2>
+
+                <h3>Задача детекции</h3>
+                <p>Классические подходы к детекции объектов работали в два этапа:</p>
+                <ul class="content-list">
+                    <li>Распределение пикселей по классам (сегментация).</li>
+                    <li>Группировка пикселей и выдача bounding boxes.</li>
+                </ul>
+                <p>YOLO (You Only Look Once) решает задачу за один проход сети, что на порядок быстрее двухэтапных подходов.</p>
+
+                <h3>IoU — Intersection over Union</h3>
+                <p>Метрика качества предсказанного bounding box:</p>
+                <p>\[\text{IoU} = \frac{A \cap B}{A \cup B}\]</p>
+                <p>где \(A\) — предсказанный bounding box, \(B\) — истинный. Значение от 0 до 1; обычно порог детекции — IoU \(\geq 0.5\).</p>
+
+                <h3>YOLOv1</h3>
+                <p>Изображение делится на сетку ячеек. Каждая ячейка предсказывает несколько bounding boxes и вероятности классов. Всё это происходит в одном прямом проходе.</p>
+
+                <p>Функция потерь состоит из трёх компонент:</p>
+                <ul class="content-list">
+                    <li><strong>Regression Loss</strong> — MSE по координатам и размерам предсказанных bounding boxes.</li>
+                    <li><strong>Confidence Loss</strong> — ошибка уверенности модели, считается через IoU.</li>
+                    <li><strong>Classification Loss</strong> — MSE по предсказанным меткам классов.</li>
+                </ul>
+
+                <p>Инференс:</p>
+                <ul class="content-list">
+                    <li>Считаем метки для каждой ячейки сетки.</li>
+                    <li>Удаляем рамки с IoU \(&lt; 0.5\).</li>
+                    <li>Применяем <strong>Non-Maximum Suppression (NMS)</strong>: сортируем bounding boxes по убыванию IoU, последовательно оставляем наиболее уверенные, удаляя сильно перекрывающиеся с ними.</li>
+                </ul>
+
+                <h3>YOLOv2</h3>
+                <ul class="content-list">
+                    <li>Убраны полносвязные слои.</li>
+                    <li>Вместо прямого предсказания bounding boxes предсказываются <strong>anchor boxes</strong> — сдвиги относительно заранее заданных якорных рамок.</li>
+                    <li>Переконфигурированы свёртки.</li>
+                    <li>Добавлен Batch Normalization.</li>
+                </ul>
+
+                <h3>YOLOv3</h3>
+                <ul class="content-list">
+                    <li>Используется более глубокая архитектура — <strong>Feature Pyramid Network (FPN)</strong>: пирамида признаков для детекции объектов разного масштаба.</li>
+                    <li>Изменён Confidence Loss.</li>
+                    <li>Детекция на трёх масштабах одновременно.</li>
+                </ul>
+
+                <table class="compare-table">
+                    <tr>
+                        <th>Версия</th>
+                        <th>Ключевые изменения</th>
+                    </tr>
+                    <tr>
+                        <td>YOLOv1</td>
+                        <td>Один проход, сетка ячеек, три компоненты лосса</td>
+                    </tr>
+                    <tr>
+                        <td>YOLOv2</td>
+                        <td>Anchor boxes, убраны FC-слои, Batch Norm</td>
+                    </tr>
+                    <tr>
+                        <td>YOLOv3</td>
+                        <td>FPN, детекция на трёх масштабах, изменён Confidence Loss</td>
+                    </tr>
+                </table>
+
+                <h3>Полезные ссылки</h3>
+                <ul class="content-list">
+                    <li><a href="https://habr.com/ru/articles/753738/" style="color: #1a5276;">История YOLO — самой известной архитектуры компьютерного зрения</a></li>
+                </ul>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; 2026 НейроЦелитель</div>
+</div>
+</body>
+</html>

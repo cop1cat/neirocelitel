@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Полносвязные сети — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ]})"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="../classical-ml/index.html">Классический ML</a>
+        <a href="index.html" class="active">Нейросети</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="intro.html">Полносвязные сети</a></li>
+                    <li><a href="cnn.html">CNN</a></li>
+                    <li><a href="yolo.html">YOLO</a></li>
+                    <li><a href="rnn.html">RNN и LSTM</a></li>
+                    <li><a href="transformer.html">Transformer</a></li>
+                    <li><a href="distillation.html">Дистилляция знаний</a></li>
+                    <li><a href="recsys.html">Рекомендательные системы</a></li>
+                    <li><a href="nlp.html">Работа с текстом</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Полносвязные сети</h2>
+
+                <div class="note-block">
+                    Нейронные сети хорошо работают со структурированными данными — то есть данными, где признаки связаны между собой.
+                </div>
+
+                <h3>Полносвязный слой (Fully Connected, FC)</h3>
+                <p>Каждый нейрон слоя получает на вход все выходы предыдущего слоя. Для входных данных \(x_1, \dots, x_n\) выход \(j\)-го нейрона:</p>
+                <p>\[z_j = \sum_{i=1}^n w_{ij} x_i + b_j\]</p>
+
+                <h3>Зачем нужна нелинейность</h3>
+                <p>Если просто соединять FC-слои друг за другом, модель не становится мощнее. Выход двух последовательных слоёв:</p>
+                <p>\[s_k = \sum_j v_{kj} z_j + c_k = \sum_j \sum_i v_{kj} w_{ji} x_i + \text{const}\]</p>
+                <p>Это снова линейное преобразование. Поэтому между слоями необходимо добавлять нелинейные функции активации.</p>
+
+                <h3>Функции активации</h3>
+                <table class="compare-table">
+                    <tr>
+                        <th>Функция</th>
+                        <th>Формула</th>
+                        <th>Особенности</th>
+                    </tr>
+                    <tr>
+                        <td>Сигмоида</td>
+                        <td>\(\sigma(x) = \frac{1}{1 + e^{-x}}\)</td>
+                        <td>Затухание градиентов на краях — плохой выбор для глубоких сетей</td>
+                    </tr>
+                    <tr>
+                        <td>ReLU</td>
+                        <td>\(f(x) = \max(0, x)\)</td>
+                        <td>Стандартный выбор для скрытых слоёв</td>
+                    </tr>
+                    <tr>
+                        <td>tanh</td>
+                        <td>\(\tanh(x)\)</td>
+                        <td>Симметрична относительно нуля, используется в RNN</td>
+                    </tr>
+                    <tr>
+                        <td>Leaky ReLU</td>
+                        <td>\(f(x) = \max(\alpha x, x)\)</td>
+                        <td>Решает проблему «мёртвых» нейронов ReLU</td>
+                    </tr>
+                </table>
+                <div class="note-block">
+                    Функции активации применяются только между скрытыми слоями. Применение нелинейности на выходе сильно ограничивает модель.
+                </div>
+
+                <h3>Теорема Цыбенко (Universal Approximation)</h3>
+                <p>Двухслойная нейронная сеть с достаточным числом нейронов может аппроксимировать любую непрерывную функцию на компактном множестве с произвольной точностью.</p>
+                <div class="warn-block">
+                    На практике такая сеть переобучается и требует огромного числа параметров. Поэтому используют глубокие сети с умеренной шириной слоёв.
+                </div>
+
+                <h3>Метод обратного распространения ошибки</h3>
+                <p>Обучение нейронной сети сводится к минимизации функции потерь градиентными методами. Градиент вычисляется цепным правилом от выходного слоя к входному — это и есть backpropagation.</p>
+                <p>Подробнее о градиентном спуске см. в разделе классического ML.</p>
+
+                <h3>Batch Normalization</h3>
+                <p>После нелинейного преобразования данные перестают быть нормированными, что замедляет сходимость. Batch Normalization нормирует выходы каждого слоя по текущему батчу, сохраняя данные в одном распределении на всех уровнях сети.</p>
+                <p>Это позволяет делать более крупные шаги градиентного спуска и значительно ускоряет обучение.</p>
+                <p>Расширение — <strong>Scale and Shift</strong>: к нормализации добавляются обучаемые параметры сдвига и масштаба. Это позволяет модели самой выбирать наиболее выгодное распределение на каждом слое.</p>
+
+                <h3>Инициализация весов</h3>
+                <ul class="content-list">
+                    <li><strong>Все нули</strong> — плохо: все нейроны будут работать одинаково, градиенты симметричны.</li>
+                    <li><strong>Случайные числа с \(\text{Var} = 1\)</strong> — лучше, но дисперсия накапливается от слоя к слою: \(\text{Var}(s) = n \cdot \text{Var}(w) \cdot \text{Var}(x)\).</li>
+                    <li><strong>Xavier / He инициализация</strong> — стандартный подход: \(w \sim \mathcal{N}\left(0, \frac{\sigma^2}{D}\right)\), где \(D\) — размерность слоя.</li>
+                </ul>
+                <div class="tip-block">
+                    Правильная инициализация критически важна: при плохой инициализации градиенты затухают или взрываются уже на первых шагах обучения.
+                </div>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к сп

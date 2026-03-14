@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Дистилляция знаний — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ]})"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="../classical-ml/index.html">Классический ML</a>
+        <a href="index.html" class="active">Нейросети</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="intro.html">Полносвязные сети</a></li>
+                    <li><a href="cnn.html">CNN</a></li>
+                    <li><a href="yolo.html">YOLO</a></li>
+                    <li><a href="rnn.html">RNN и LSTM</a></li>
+                    <li><a href="transformer.html">Transformer</a></li>
+                    <li><a href="distillation.html">Дистилляция знаний</a></li>
+                    <li><a href="recsys.html">Рекомендательные системы</a></li>
+                    <li><a href="nlp.html">Работа с текстом</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Дистилляция знаний и adversarial attacks</h2>
+
+                <h3>Adversarial Attacks</h3>
+                <p>Почему нейронная сеть меняет предсказание при добавлении шума?</p>
+                <p>Если усилить один пиксель — модель изменит предсказание, но это неэффективно: один пиксель можно менять конечное число раз. Более мощный подход — менять все пиксели, но чуть-чуть. Направление изменений вычисляется через градиент функции потерь по входу.</p>
+
+                <p>Типы атак:</p>
+                <ul class="content-list">
+                    <li><strong>Направленные</strong> — максимизируем вероятность предсказания конкретного целевого класса.</li>
+                    <li><strong>Ненаправленные</strong> — минимизируем вероятность правильного класса, то есть максимизируем вероятности всех остальных классов.</li>
+                </ul>
+
+                <div class="note-block">
+                    Adversarial attacks — серьёзная проблема в production: атакованное изображение визуально неотличимо от оригинала, но модель уверенно выдаёт неправильный ответ.
+                </div>
+
+                <h3>Дистилляция знаний (Knowledge Distillation)</h3>
+                <p>При правильном обучении модель учится обобщать задачу, а не запоминать примеры. Именно это используется в дистилляции.</p>
+                <p>Ключевая идея: обучить большую модель-учителя, которая из слабоинформативных данных создаёт более богатое представление. Затем обучить модель-студента на этих представлениях — студент получается меньше, но тоже умеет обобщать.</p>
+
+                <h4>Температура softmax</h4>
+                <p>\[\text{softmax}_T(\vec{x}) = \left(\dots,\ \frac{\exp\left(\frac{x_i}{T}\right)}{\sum_j \exp\left(\frac{x_j}{T}\right)},\ \dots\right)\]</p>
+                <ul class="content-list">
+                    <li>При \(T = 1\) — стандартный softmax.</li>
+                    <li>При большом \(T\) — распределение приближается к равномерному, «мягкие» метки раскрывают структуру неуверенности модели.</li>
+                    <li>При \(T \to \infty\) — градиент второго слагаемого \(L_{KD}\) стремится к градиенту квадрата нормы разности логитов учителя и студента.</li>
+                </ul>
+
+                <h4>Функция потерь</h4>
+                <p>\[L_{KD} = -\frac{1}{N}\sum_{i=1}^N \left( \sum_{j=1}^K y_{ij} \log p_{ij} + \lambda T^2 \sum_{j=1}^K q_{ij}^T \log p_{ij}^T \right)\]</p>
+                <p>Первое слагаемое — стандартный cross-entropy по истинным меткам. Второе — KL-дивергенция между «мягкими» предсказаниями учителя и студента при температуре \(T\). Коэффициент \(T^2\) компенсирует масштаб градиентов при высокой температуре.</p>
+
+                <h4>Инициализация весов при дистилляции</h4>
+                <p>Случайная инициализация весов студента приводит к падению качества примерно на 5%. Задача оптимизации становится очень сложной — много локальных минимумов. На практике используют инициализацию через разбиение на группы.</p>
+
+                <h4>Зачем это нужно</h4>
+                <ul class="content-list">
+                    <li>Можно сжать большую модель в маленькую без существенных потерь в качестве.</li>
+                    <li>Можно обучить несколько учителей на разных доменах и дистиллировать их в одну модель — итоговое качество будет выше, чем у каждого учителя по отдельности.</li>
+                    <li>Дистилляция применяется при квантизации весов для сохранения качества.</li>
+                </ul>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; 2026 НейроЦелитель</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>CatBoost, LightGBM, XGBoost — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ]})"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="index.html" class="active">Классический ML</a>
+        <a href="../neural-nets/index.html">Нейросети</a>
+        <a href="../os/index.html">ОС</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="intro.html">Введение</a></li>
+                    <li><a href="metrics.html">Метрики качества</a></li>
+                    <li><a href="linear-models.html">Линейные модели</a></li>
+                    <li><a href="loss-functions.html">Функции потерь</a></li>
+                    <li><a href="decision-trees.html">Решающие деревья</a></li>
+                    <li><a href="bias-variance.html">Bias-Variance</a></li>
+                    <li><a href="ensembles.html">Бэггинг и Random Forest</a></li>
+                    <li><a href="boosting.html">Градиентный бустинг</a></li>
+                    <li><a href="boosting-libs.html">CatBoost, LightGBM, XGBoost</a></li>
+                    <li><a href="clustering.html">Кластеризация</a></li>
+                    <li><a href="validation.html">Валидация и интерпретируемость</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>CatBoost, LightGBM, XGBoost</h2>
+
+                <h3>Сравнительная таблица</h3>
+                <table class="compare-table">
+                    <tr>
+                        <th>Свойство</th>
+                        <th>XGBoost</th>
+                        <th>LightGBM</th>
+                        <th>CatBoost</th>
+                    </tr>
+                    <tr>
+                        <td>Разработчик</td>
+                        <td>DMLC</td>
+                        <td>Microsoft</td>
+                        <td>Яндекс</td>
+                    </tr>
+                    <tr>
+                        <td>Рост дерева</td>
+                        <td>По уровням (level-wise)</td>
+                        <td>По листьям (leaf-wise)</td>
+                        <td>По уровням (symmetric)</td>
+                    </tr>
+                    <tr>
+                        <td>Категориальные признаки</td>
+                        <td>Нужен OHE вручную</td>
+                        <td>Встроенная поддержка</td>
+                        <td>Встроенная поддержка (ordered TS)</td>
+                    </tr>
+                    <tr>
+                        <td>Скорость обучения</td>
+                        <td>Средняя</td>
+                        <td>Высокая (GOSS)</td>
+                        <td>Средняя</td>
+                    </tr>
+                    <tr>
+                        <td>Регуляризация</td>
+                        <td>L1/L2 + pruning</td>
+                        <td>min_data_in_leaf</td>
+                        <td>L2 + depth</td>
+                    </tr>
+                    <tr>
+                        <td>Бустинг второго порядка</td>
+                        <td>Да</td>
+                        <td>Да</td>
+                        <td>Да</td>
+                    </tr>
+                </table>
+
+                <h3>XGBoost</h3>
+                <p>Реализует бустинг второго порядка с явной регуляризацией по числу листьев и норме прогнозов. Оптимальный прогноз в листе и impurity для построения сплитов выведены аналитически (см. страницу про градиентный бустинг).</p>
+                <p>Основные идеи:</p>
+                <ul class="content-list">
+                    <li>Pruning: отсекаем листья, прирост от которых ниже порога \(\gamma\).</li>
+                    <li>Регуляризация: штраф за малое число объектов в листе (\(\lambda\)).</li>
+                    <li>Прогноз в листе нормируется не только на число объектов, но и на \(\lambda\): \(b_j^* = \frac{S_j}{H_j + \lambda}\).</li>
+                    <li>Сплит выбирается с наименьшей дисперсией по функционалу \(H(B)\).</li>
+                </ul>
+
+                <h3>LightGBM</h3>
+                <p>Основное отличие — механизм <strong>GOSS (Gradient One-Side Sampling)</strong>:</p>
+                <ul class="content-list">
+                    <li>Объекты с большим градиентом (большой ошибкой) оставляются полностью.</li>
+                    <li>Объекты с малым градиентом — сэмплируются случайно.</li>
+                    <li>Чтобы компенсировать сдвиг распределения, объекты с малым градиентом домножаются на коэффициент сглаживания.</li>
+                </ul>
+                <p>Дерево растёт <strong>leaf-wise</strong>: на каждом шаге расщепляется лист с наибольшим приростом функционала, а не весь уровень. Это даёт более глубокие деревья при том же числе листьев.</p>
+                <div class="warn-block">
+                    GOSS ускоряет сходимость, но нарушает распределение данных. Коэффициент сглаживания частично компенсирует это, но не полностью.
+                </div>
+
+                <h3>CatBoost</h3>
+                <p>Градиентный бустинг от Яндекса. Основные особенности:</p>
+
+                <h4>Категориальные признаки</h4>
+                <p>CatBoost обрабатывает категориальные признаки нативно через <strong>ordered target statistics</strong> — статистики, вычисленные только по объектам, предшествующим текущему в случайной перестановке. Это предотвращает утечку целевой переменной.</p>
+                <div class="warn-block">
+                    Не нужно делать OHE вручную перед подачей данных в CatBoost. Это снижает скорость сходимости и не даёт прироста в качестве.
+                </div>
+
+                <h4>Symmetric trees</h4>
+                <p>При построении дерева сплит выбирается одним для всего уровня, а не отдельно для каждой вершины. Это снижает число операций и ускоряет инференс.</p>
+                <div class="note-block">
+                    При классификации CatBoost предсказывает смещения по вероятностям, но применяет их к логитам — не к вероятностям напрямую.
+                </div>
+
+                <h4>Поддерживаемые задачи</h4>
+                <ul class="content-list">
+                    <li>Регрессия (MSE).</li>
+                    <li>Классификация — сигмоида от логита.</li>
+                    <li>Мультиклассификация — softmax.</li>
+                    <li>Ранжирование — максимизация вероятности правильного упорядочивания пар объектов.</li>
+                </ul>
+
+                <h3>Когда что использовать</h3>
+                <table class="compare-table">
+                    <tr>
+                        <th>Ситуация</th>
+                        <th>Рекомендация</th>
+                    </tr>
+                    <tr>
+                        <td>Много категориальных признаков</td>
+                        <td>CatBoost</td>
+                    </tr>
+                    <tr>
+                        <td>Нужна максимальная скорость обучения</td>
+                        <td>LightGBM</td>
+                    </tr>
+                    <tr>
+                        <td>Нужна воспроизводимость и широкая документация</td>
+                        <td>XGBoost</td>
+                    </tr>
+                    <tr>
+                        <td>Задача ранжирования</td>
+                        <td>CatBoost или LightGBM (LambdaRank)</td>
+                    </tr>
+                    <tr>
+                        <td>Большой датасет, мало памяти</td>
+                        <td>LightGBM (histogram-based splits)</td>
+                    </tr>
+                </table>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; 2026 НейроЦелитель</div>
+</div>
+</body>
+</html>

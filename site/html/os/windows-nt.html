@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Windows NT — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="../classical-ml/index.html">Классический ML</a>
+        <a href="../neural-nets/index.html">Нейросети</a>
+        <a href="index.html" class="active">ОС</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="unix-basics.html">Основы UNIX</a></li>
+                    <li><a href="processes.html">Процессы</a></li>
+                    <li><a href="filesystem.html">Файловая система</a></li>
+                    <li><a href="ipc.html">IPC</a></li>
+                    <li><a href="sockets.html">Сокеты</a></li>
+                    <li><a href="shell.html">Shell</a></li>
+                    <li><a href="windows-nt.html">Windows NT</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Архитектура Windows NT</h2>
+
+                <h3>Общая структура</h3>
+                <table class="compare-table">
+                    <tr><th>Уровень (сверху вниз)</th></tr>
+                    <tr><td>Подсистемы окружения (Win32, POSIX, OS/2)</td></tr>
+                    <tr><td>Системные DLL (ntdll.dll, kernel32.dll и др.)</td></tr>
+                    <tr><td>Исполнительная система (Executive) — ntoskrnl.exe</td></tr>
+                    <tr><td>Микроядро (Kernel)</td></tr>
+                    <tr><td>Уровень аппаратной абстракции (HAL) — hal.dll</td></tr>
+                    <tr><td>Аппаратное обеспечение</td></tr>
+                </table>
+
+                <p>Режимы работы:</p>
+                <ul class="content-list">
+                    <li><strong>User Mode</strong> — ограниченный доступ, процессы не обращаются к аппаратуре напрямую.</li>
+                    <li><strong>Kernel Mode</strong> — полный доступ к аппаратным ресурсам и памяти всех процессов.</li>
+                </ul>
+
+                <h3>HAL — уровень аппаратной абстракции</h3>
+                <p>Скрывает аппаратные различия от остальной части ОС. Файл: <code>hal.dll</code>.</p>
+                <p>Функции HAL:</p>
+                <ul class="content-list">
+                    <li>Доступ к регистрам устройств через порты или память</li>
+                    <li>Адресация устройств независимо от типа шины</li>
+                    <li>Обработка прерываний</li>
+                    <li>Управление DMA (прямой доступ к памяти)</li>
+                    <li>Управление таймерами</li>
+                    <li>Синхронизация в многопроцессорных системах</li>
+                    <li>Взаимодействие с BIOS и CMOS</li>
+                </ul>
+                <div class="warn-block">
+                    HAL не предоставляет абстракций для мышей, клавиатур и дисков.
+                </div>
+
+                <h3>Микроядро</h3>
+                <p>Выполняет низкоуровневые операции:</p>
+                <ul class="content-list">
+                    <li><strong>Переключение контекста</strong> — сохранение регистров, настройка карты памяти, восстановление регистров нового потока.</li>
+                    <li><strong>Обработка прерываний</strong> — диспетчеризация аппаратных и программных прерываний.</li>
+                    <li><strong>Объекты синхронизации</strong> — семафоры, мьютексы, события, таймеры.</li>
+                    <li><strong>DPC</strong> (Deferred Procedure Call) — отложенный вызов процедуры.</li>
+                    <li><strong>APC</strong> (Asynchronous Procedure Call) — асинхронный вызов процедуры.</li>
+                </ul>
+
+                <table class="compare-table">
+                    <tr>
+                        <th>Управляющие объекты</th>
+                        <th>Объекты диспетчеризации</th>
+                    </tr>
+                    <tr><td>Процессы</td><td>Семафоры</td></tr>
+                    <tr><td>Потоки</td><td>Мьютексы</td></tr>
+                    <tr><td>Прерывания</td><td>События</td></tr>
+                    <tr><td>DPC</td><td>Критические секции</td></tr>
+                    <tr><td></td><td>Таймеры</td></tr>
+                </table>
+
+                <h3>Исполнительная система (Executive)</h3>
+                <table class="compare-table">
+                    <tr>
+                        <th>Диспетчер</th>
+                        <th>Функции</th>
+                    </tr>
+                    <tr>
+                        <td>Объектов</td>
+                        <td>Управление объектами ОС (процессы, потоки, файлы). Выделение памяти при создании, возврат в пул при уничтожении</td>
+                    </tr>
+                    <tr>
+                        <td>Ввода-вывода</td>
+                        <td>Унифицированный интерфейс для файловых систем и драйверов</td>
+                    </tr>
+                    <tr>
+                        <td>Процессов</td>
+                        <td>Создание, завершение и управление процессами и потоками</td>
+                    </tr>
+                    <tr>
+                        <td>Памяти</td>
+                        <td>Виртуальная память со страничной подкачкой, преобразование адресов</td>
+                    </tr>
+                    <tr>
+                        <td>Безопасности</td>
+                        <td>Проверка прав доступа, аудит операций</td>
+                    </tr>
+                    <tr>
+                        <td>Кэша</td>
+                        <td>Кэширование данных файловых систем (отдельный кэш для каждой ФС)</td>
+                    </tr>
+                    <tr>
+                        <td>Plug and Play</td>
+                        <td>Обнаружение и настройка устройств, загрузка драйверов</td>
+                    </tr>
+                    <tr>
+                        <td>Электропитания</td>
+                        <td>Управление энергопотреблением, перевод устройств в режим сна</td>
+                    </tr>
+                    <tr>
+                        <td>Конфигурации</td>
+                        <td>Работа с реестром</td>
+                    </tr>
+                    <tr>
+                        <td>LPC</td>
+                        <td>Межпроцессное взаимодействие между клиентами и серверами на одной машине</td>
+                    </tr>
+                </table>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; <span id="year"></span> НейроЦелитель</div>
+    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</div>
+</body>
+</html>

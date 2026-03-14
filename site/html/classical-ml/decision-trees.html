@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Решающие деревья — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ]})"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="index.html" class="active">Классический ML</a>
+        <a href="../neural-nets/index.html">Нейросети</a>
+        <a href="../os/index.html">ОС</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="intro.html">Введение</a></li>
+                    <li><a href="metrics.html">Метрики качества</a></li>
+                    <li><a href="linear-models.html">Линейные модели</a></li>
+                    <li><a href="loss-functions.html">Функции потерь</a></li>
+                    <li><a href="decision-trees.html">Решающие деревья</a></li>
+                    <li><a href="bias-variance.html">Bias-Variance</a></li>
+                    <li><a href="ensembles.html">Бэггинг и Random Forest</a></li>
+                    <li><a href="boosting.html">Градиентный бустинг</a></li>
+                    <li><a href="boosting-libs.html">CatBoost, LightGBM, XGBoost</a></li>
+                    <li><a href="clustering.html">Кластеризация</a></li>
+                    <li><a href="validation.html">Валидация и интерпретируемость</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Решающие деревья</h2>
+
+                <h3>Структура модели</h3>
+                <p>Решающее дерево — бинарное дерево, где каждая внутренняя вершина \(v\) содержит предикат \(\beta_v: \mathbb{X} \to \{0, 1\}\), а каждый лист содержит прогноз \(c_v \in \mathbb{Y}\).</p>
+
+                <p>Типичные предикаты:</p>
+                <ul class="content-list">
+                    <li>\(\beta_v(x) = [x_j \geq t]\) — самый простой и часто используемый.</li>
+                    <li>\(\beta_v(x) = [\langle w, x \rangle \geq t]\) — линейный предикат.</li>
+                    <li>\(\beta_v(x) = [\rho(x, x_0) \geq t]\) — предикат по расстоянию.</li>
+                </ul>
+
+                <div class="note-block">
+                    Multi-way деревья (более 2 ветвей из одной вершины) существуют, но сложнее в обучении и чаще переобучаются.
+                </div>
+
+                <h3>Как обучать деревья</h3>
+                <p>Если в выборке нет двух одинаковых объектов с разными ответами, существует дерево с нулевой ошибкой на обучении. Найти наименьшее такое дерево — NP-трудная задача, поэтому используют жадные алгоритмы.</p>
+
+                <p>Алгоритм построения (псевдокод):</p>
+                <pre class="code-block">SplitNode(m, Rm):
+    если выполнен критерий останова:
+        c_m = средний ответ / самый частый класс
+        выход
+    иначе:
+        j, t = argmax Q(Rm, j, t)
+        Rl = {(x,y) in Rm | x_j &lt; t}
+        Rr = {(x,y) in Rm | x_j >= t}
+        SplitNode(l, Rl)
+        SplitNode(r, Rr)</pre>
+
+                <p>Критерии останова:</p>
+                <ul class="content-list">
+                    <li>Ограничение на максимальную глубину.</li>
+                    <li>Минимальное число объектов в листе.</li>
+                    <li>Допустимая доля ошибок в листе.</li>
+                </ul>
+
+                <h3>Критерии качества предиката (impurity)</h3>
+                <p>\(H(R)\) — impurity, показывает разнородность ответов в регионе \(R\). Общий подход:</p>
+                <p>\[H(R) = \min_{c \in \mathbb{R}} \frac{1}{|R|} \sum_{(x,y) \in R} L(y_i, c)\]</p>
+
+                <p>Примеры для регрессии:</p>
+                <p>\[H(R_m) = \frac{1}{|R_m|} \sum_{(x,y) \in R_m} (y_i - \bar{y}_m)^2\]</p>
+
+                <p>Примеры для классификации (доля класса \(k\): \(p_k = \frac{1}{|R_m|} \sum [y_i = k]\)):</p>
+                <ul class="content-list">
+                    <li>Энтропия: \(H(R) = -\sum_k p_k \log p_k\)</li>
+                    <li>Критерий Джини: \(H(R) = \sum_k p_k(1 - p_k)\)</li>
+                </ul>
+
+                <p>Функционал качества разбиения:</p>
+                <p>\[Q(R_m, j, t) = H(R_m) - \frac{|R_l|}{|R_m|} H(R_l) - \frac{|R_r|}{|R_m|} H(R_r)\]</p>
+
+                <h3>Обработка пропусков</h3>
+
+                <h4>Вариант 1 — штраф за пропуски</h4>
+                <p>Штрафуем предикат по признаку \(j\) пропорционально доле объектов без пропусков:</p>
+                <p>\[Q(R, j, t) = \frac{|R \setminus V_j|}{|R|}\ Q(R \setminus V_j(R),\ j, t)\]</p>
+                <p>Объекты с пропуском отправляем и влево, и вправо с весами \(\frac{|R_l|}{|R|}\) и \(\frac{|R_r|}{|R|}\).</p>
+
+                <h4>Вариант 2 — суррогатный предикат</h4>
+                <p>Выбираем лучший предикат \(\beta(x)\), затем ищем суррогатные \(\beta'(x), \beta''(x), \dots\), дающие похожее разбиение. На инференсе используем первый доступный предикат:</p>
+                <p>\[x \xrightarrow{\beta(x)\ \text{н/д}} \beta'(x) \xrightarrow{\text{н/д}} \beta''(x) \xrightarrow{\text{н/д}} \dots\]</p>
+
+                <h3>Категориальные признаки</h3>
+                <p>Для признака \(x_j \in \{u_1, \dots, u_q\}\) ищем оптимальное разбиение \(Q = Q_1 \sqcup Q_2\) и используем предикат \(\beta(x) = [x_j \in Q_1]\). Перебор всех \(2^{|Q|}\) разбиений заменяется линейным алгоритмом: сортируем категории по доле положительных объектов, затем перебираем префиксы.</p>
+
+                <div class="note-block">
+                    Линейный алгоритм поиска оптимального разбиения работает только для бинарной классификации и регрессии.
+                </div>
+
+                <h3>Связь деревьев и линейных моделей</h3>
+                <p>Дерево делит пространство на регионы \(\mathbb{X} = J_1 \sqcup \dots \sqcup J_n\) и выдаёт прогноз:</p>
+                <p>\[a(x) = \sum_{j=1}^n w_j [x \in J_j]\]</p>
+                <p>Индикаторы регионов — нелинейные признаки, а \(w_j\) — веса. То есть дерево само строит нелинейные признаки, а затем применяет к ним линейную модель. На этой идее основан метод PmXTree.</p>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; 2026 НейроЦелитель</div>
+</div>
+</body>
+</html>

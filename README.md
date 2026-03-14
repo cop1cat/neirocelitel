@@ -1,2 +1,9 @@
 # neirocelitel
-Simple web page with ML-jokes
+
+Сайт про машинное обучение: конспекты по классическому ML и нейросетям, а также архив мемов.
+
+## Локальный запуск
+
+```bash
+docker compose up --build -d
+```

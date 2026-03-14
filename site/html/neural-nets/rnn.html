@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>RNN и LSTM — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ]})"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="../classical-ml/index.html">Классический ML</a>
+        <a href="index.html" class="active">Нейросети</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="intro.html">Полносвязные сети</a></li>
+                    <li><a href="cnn.html">CNN</a></li>
+                    <li><a href="yolo.html">YOLO</a></li>
+                    <li><a href="rnn.html">RNN и LSTM</a></li>
+                    <li><a href="transformer.html">Transformer</a></li>
+                    <li><a href="distillation.html">Дистилляция знаний</a></li>
+                    <li><a href="recsys.html">Рекомендательные системы</a></li>
+                    <li><a href="nlp.html">Работа с текстом</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>RNN и LSTM</h2>
+
+                <h3>Задача</h3>
+                <p>Как работать со структурными последовательными данными — речью, текстом, временными рядами? Полносвязные сети не учитывают порядок элементов. Рекуррентные нейронные сети (RNN) решают эту проблему.</p>
+
+                <h3>Как работает RNN</h3>
+                <p>Идея: строим следующий элемент последовательности на основании предыдущего скрытого состояния.</p>
+                <p>В начало и конец последовательности добавляют служебные токены: \(\langle\text{STR}\rangle\), \(\langle\text{END}\rangle\), \(\langle\text{UNKNOWN}\rangle\).</p>
+                <p>Математически:</p>
+                <p>\[h_0 = \vec{0}\]</p>
+                <p>\[h_{i+1} = \sigma(\langle W_\text{hid},\, [h_i, x_i] \rangle + b)\]</p>
+                <p>\[P(x_{i+1}) = \text{softmax}(\langle W_\text{out}, h_i \rangle + b_\text{out})\]</p>
+                <p>Веса \(W_\text{hid}\) и \(W_\text{out}\) общие для всех шагов — это и есть рекуррентность.</p>
+
+                <h3>Проблема 1 — выбор функции активации</h3>
+                <p>При использовании ReLU веса от шага к шагу накапливаются и уходят в большие значения. Используют <strong>tanh</strong> вместо сигмоиды: tanh симметричен относительно нуля, что предотвращает смещение весов.</p>
+
+                <h3>Проблема 2 — модель забывает</h3>
+                <p>При обновлении скрытого состояния старая информация вытесняется новой. Модель не может явно управлять тем, что запомнить, а что забыть.</p>
+                <p>Решение — <strong>LSTM (Long Short-Term Memory)</strong>: механизм ворот (gates) явно управляет потоком информации через сеть.</p>
+                <ul class="content-list">
+                    <li><strong>Forget gate</strong> — что забыть из предыдущего состояния.</li>
+                    <li><strong>Input gate</strong> — что записать из текущего входа.</li>
+                    <li><strong>Output gate</strong> — что передать дальше.</li>
+                </ul>
+
+                <h3>Проблема 3 — затухание градиентов</h3>
+                <p>При обратном распространении через много шагов времени градиент перемножается на одни и те же веса — и экспоненциально затухает.</p>
+                <p>Решения:</p>
+                <table class="compare-table">
+                    <tr>
+                        <th>Метод</th>
+                        <th>Идея</th>
+                        <th>Качество / скорость</th>
+                    </tr>
+                    <tr>
+                        <td>LSTM</td>
+                        <td>Ворота управляют градиентным потоком</td>
+                        <td>База, хорошее качество</td>
+                    </tr>
+                    <tr>
+                        <td>GRU</td>
+                        <td>Упрощённый LSTM с меньшим числом параметров</td>
+                        <td>Чуть хуже качество, быстрее</td>
+                    </tr>
+                    <tr>
+                        <td>Bidirectional RNN</td>
+                        <td>Обновление и с начала, и с конца последовательности</td>
+                        <td>Лучше улавливает контекст</td>
+                    </tr>
+                    <tr>
+                        <td>MultiLayer RNN</td>
+                        <td>Стекирование нескольких RNN друг над другом</td>
+                        <td>Хорошо работает на практике</td>
+                    </tr>
+                </table>
+
+                <div class="note-block">
+                    RNN работает с любыми векторными представлениями, имеющими структуру последовательности, — не только с текстом, но и со звуком, временными рядами и другими данными.
+                </div>
+
+                <h3>Полезные ссылки</h3>
+                <ul class="content-list">
+                    <li><a href="https://colah.github.io/posts/2015-08-Understanding-LSTMs/" style="color: #1a5276;">Understanding LSTM Networks — colah's blog</a></li>
+                </ul>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; 2026 НейроЦелитель</div>
+</div>
+</body>
+</html>

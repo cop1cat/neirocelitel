@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>CNN — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ]})"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="../classical-ml/index.html">Классический ML</a>
+        <a href="index.html" class="active">Нейросети</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="intro.html">Полносвязные сети</a></li>
+                    <li><a href="cnn.html">CNN</a></li>
+                    <li><a href="yolo.html">YOLO</a></li>
+                    <li><a href="rnn.html">RNN и LSTM</a></li>
+                    <li><a href="transformer.html">Transformer</a></li>
+                    <li><a href="distillation.html">Дистилляция знаний</a></li>
+                    <li><a href="recsys.html">Рекомендательные системы</a></li>
+                    <li><a href="nlp.html">Работа с текстом</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Свёрточные нейронные сети (CNN)</h2>
+
+                <h3>Операция свёртки</h3>
+                <p>В непрерывном случае свёртка определяется как:</p>
+                <p>\[s(t) = \int_a^b x(a)\, w(t - a)\, da = (x * w)(t)\]</p>
+                <p>где \(w\) — ядро свёртки (kernel), \(x\) — входные данные. В дискретном двумерном случае (изображения):</p>
+                <p>\[z_{i,j} = \sum_{m,n} x_{i+m,\, j+n}\, w_{m,n}\]</p>
+
+                <h3>Основная идея CNN</h3>
+                <p>В отличие от полносвязных сетей, CNN обрабатывают данные локально. Фильтр перемещается по входным данным и выявляет локальные признаки: на первых слоях — края и текстуры, на глубоких — сложные формы и объекты.</p>
+                <p>Преимущества свёрток:</p>
+                <ul class="content-list">
+                    <li>Локальность обработки данных.</li>
+                    <li>Значительно меньше параметров по сравнению с FC-слоями.</li>
+                    <li>Инвариантность к сдвигам: объект распознаётся независимо от положения.</li>
+                </ul>
+
+                <h3>Receptive Field</h3>
+                <p>Обычно используются свёртки 1×1 и 3×3. При многократном наложении небольших свёрток receptive field растёт нелинейно — каждый нейрон глубокого слоя зависит от большой области входа, при этом зависимость нелинейная.</p>
+
+                <h3>Пулинг (Pooling)</h3>
+                <p>После сверточного слоя обычно добавляется слой пулинга, уменьшающий размерность карты признаков:</p>
+                <ul class="content-list">
+                    <li><strong>Max-pooling</strong> — выбирает максимум на участке. Сохраняет наиболее выраженные признаки.</li>
+                    <li><strong>Average-pooling</strong> — усредняет значения на участке.</li>
+                </ul>
+
+                <h3>Регуляризация в CNN</h3>
+                <table class="compare-table">
+                    <tr>
+                        <th>Метод</th>
+                        <th>Идея</th>
+                    </tr>
+                    <tr>
+                        <td>Dropout</td>
+                        <td>Случайное отключение нейронов во время обучения</td>
+                    </tr>
+                    <tr>
+                        <td>Data Augmentation</td>
+                        <td>Повороты, изменения яркости, отражения — увеличение разнообразия данных</td>
+                    </tr>
+                    <tr>
+                        <td>L2-регуляризация</td>
+                        <td>Штраф за большие веса</td>
+                    </tr>
+                    <tr>
+                        <td>Mixup</td>
+                        <td>Смешивание пар обучающих примеров и их меток с весами</td>
+                    </tr>
+                    <tr>
+                        <td>Label Smoothing</td>
+                        <td>Размытие жёстких меток — модель не обучается быть слишком уверенной</td>
+                    </tr>
+                </table>
+
+                <h3>DenseNet</h3>
+                <p>В классических CNN выход каждого слоя передаётся только в следующий. В <strong>DenseNet</strong> каждый слой получает на вход выходы всех предыдущих слоёв:</p>
+                <p>\[H_l = F_l([H_0, H_1, \dots, H_{l-1}])\]</p>
+                <p>где \([\cdot]\) — конкатенация, \(F_l\) — нелинейная трансформация (свёртка + активация).</p>
+
+                <p>Преимущества:</p>
+                <ul class="content-list">
+                    <li>Эффективное повторное использование признаков — каждый слой видит все предыдущие.</li>
+                    <li>Улучшенное распространение градиентов — решает проблему затухания.</li>
+                    <li>Меньше параметров по сравнению с обычными глубокими сетями той же глубины.</li>
+                    <li>Лучшая сходимость.</li>
+                </ul>
+
+                <p>Структура DenseNet:</p>
+                <ul class="content-list">
+                    <li><strong>Dense Block</strong> — серия слоёв с плотными соединениями.</li>
+                    <li><strong>Transition Layer</strong> — свёртка 1×1 и пулинг для уменьшения размерности между блоками.</li>
+                </ul>
+
+                <div class="warn-block">
+                    Основной недостаток DenseNet — необходимость хранить все промежуточные выходы, что требует значительного объёма памяти на глубоких сетях.
+                </div>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; 2026 НейроЦелитель</div>
+</div>
+</body>
+</html>

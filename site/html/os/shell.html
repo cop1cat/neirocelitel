@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Shell — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="../classical-ml/index.html">Классический ML</a>
+        <a href="../neural-nets/index.html">Нейросети</a>
+        <a href="index.html" class="active">ОС</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="unix-basics.html">Основы UNIX</a></li>
+                    <li><a href="processes.html">Процессы</a></li>
+                    <li><a href="filesystem.html">Файловая система</a></li>
+                    <li><a href="ipc.html">IPC</a></li>
+                    <li><a href="sockets.html">Сокеты</a></li>
+                    <li><a href="shell.html">Shell</a></li>
+                    <li><a href="windows-nt.html">Windows NT</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Shell</h2>
+
+                <h3>Что такое shell</h3>
+                <p>Shell — командный интерпретатор, обозначается <code>sh</code>. Первая реализация — 1979 год. Основные стандарты: SYSTEM_V (американский) и POSIX.1 (европейский).</p>
+
+                <h3>Реализации shell</h3>
+                <table class="compare-table">
+                    <tr>
+                        <th>Название</th>
+                        <th>Автор / описание</th>
+                    </tr>
+                    <tr><td>sh</td><td>Классический shell</td></tr>
+                    <tr><td>bash</td><td>Bourne Again Shell (Stephen Bourne, Bell Labs)</td></tr>
+                    <tr><td>csh</td><td>C-shell</td></tr>
+                    <tr><td>ksh</td><td>Korn shell (David Korn) — объединяет csh и bash</td></tr>
+                    <tr><td>zsh</td><td>Z-shell</td></tr>
+                </table>
+
+                <h3>Функции shell</h3>
+                <ul class="content-list">
+                    <li>Интерпретация команд</li>
+                    <li>Создание среды пользователя</li>
+                    <li>Обработка имён файлов через метасимволы</li>
+                    <li>Переадресация ввода/вывода</li>
+                    <li>Поддержка командного языка (скрипты)</li>
+                </ul>
+
+                <h3>Метасимволы</h3>
+                <table class="compare-table">
+                    <tr>
+                        <th>Символ</th>
+                        <th>Значение</th>
+                    </tr>
+                    <tr><td><code>*</code></td><td>Любое количество любых символов</td></tr>
+                    <tr><td><code>?</code></td><td>Один любой символ</td></tr>
+                    <tr><td><code>[...]</code></td><td>Один символ из указанного набора</td></tr>
+                </table>
+
+                <h3>Переадресация ввода/вывода</h3>
+                <table class="compare-table">
+                    <tr>
+                        <th>Оператор</th>
+                        <th>Действие</th>
+                    </tr>
+                    <tr><td><code>&gt;</code></td><td>Жёсткая переадресация — перезаписывает файл</td></tr>
+                    <tr><td><code>&gt;&gt;</code></td><td>Мягкая переадресация — дописывает в конец файла</td></tr>
+                    <tr><td><code>&lt;</code></td><td>Ввод из файла</td></tr>
+                    <tr><td><code>|</code></td><td>Конвейер — вывод одной команды на вход другой</td></tr>
+                </table>
+
+                <h3>Переменные</h3>
+                <p>Переменная создаётся присваиванием или командой <code>read</code>. Переменная — цепочка символов. Знак <code>$</code> — взять значение переменной.</p>
+                <pre class="code-block">a=10
+b=sasha
+read c d f
+echo "a=$a b=$b c=$c"</pre>
+
+                <h4>Специальные переменные</h4>
+                <table class="compare-table">
+                    <tr>
+                        <th>Переменная</th>
+                        <th>Значение</th>
+                    </tr>
+                    <tr><td><code>$1, $2, ...</code></td><td>Аргументы командной строки</td></tr>
+                    <tr><td><code>$$</code></td><td>Количество всех shell-переменных в среде</td></tr>
+                    <tr><td><code>$?</code></td><td>Возвращаемое значение последней команды (0 — истина, 1 — ложь)</td></tr>
+                </table>
+
+                <pre class="code-block">a=`ls`   # присвоить вывод команды ls переменной a
+echo $a  # вывести список файлов</pre>
+
+                <h3>Права доступа</h3>
+                <pre class="code-block">chmod 700 lab    # числовая запись
+chmod u+x lab    # символьная запись</pre>
+
+                <h3>Встроенные команды shell</h3>
+                <table class="compare-table">
+                    <tr>
+                        <th>Команда</th>
+                        <th>Описание</th>
+                    </tr>
+                    <tr><td><code>readonly</code></td><td>Сделать переменную доступной только для чтения</td></tr>
+                    <tr><td><code>shift</code></td><td>Сдвинуть аргументы командной строки влево</td></tr>
+                    <tr><td><code>test</code></td><td>Вычислить условное выражение</td></tr>
+                    <tr><td><code>trap</code></td><td>Перехватить сигнал и выполнить заданное действие</td></tr>
+                    <tr><td><code>umask</code></td><td>Показать или установить маску прав доступа</td></tr>
+                    <tr><td><code>unset</code></td><td>Удалить переменную или функцию</td></tr>
+                    <tr><td><code>wait</code></td><td>Ожидать завершения дочернего процесса</td></tr>
+                </table>
+
+                <h3>Арифметика через expr</h3>
+                <pre class="code-block">a=2
+a=`expr $a + 7`
+b=`expr $a / 3`
+c=`expr $a \* $b`   # * нужно экранировать
+echo "a=$a, b=$b, c=$c"</pre>
+
+                <h3>Проверка файлов командой test</h3>
+                <pre class="code-block">test -e file   # файл существует
+test -f file   # обычный файл
+test -d file   # каталог
+test -r file   # доступен для чтения
+test -w file   # доступен для записи
+test -x file   # доступен для выполнения
+test -s file   # не пустой</pre>
+
+                <h3>Пример скрипта — определение типа файла</h3>
+                <pre class="code-block">#!/bin/sh
+i=0
+
+handl() {
+    i=`expr $i + 1`
+    if test $i -eq 3; then
+        file * | grep "C source" | cut -d : -f 1
+    fi
+}
+
+trap handl 2   # перехватываем SIGINT
+
+while true; do
+    echo "Введите имя файла:"
+    read name
+    if test -e "$name"; then
+        b=`ls -lda "$name" | cut -c 1`
+        case $b in
+            -) echo "$name - обычный файл";;
+            d) echo "$name - каталог";;
+            l) echo "$name - символьная ссылка";;
+            p) echo "$name - канал FIFO";;
+            c) echo "$name - символьное устройство";;
+            b) echo "$name - блочное устройство";;
+            s) echo "$name - сокет";;
+        esac
+        break
+    fi
+done</pre>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; <span id="year"></span> НейроЦелитель</div>
+    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</div>
+</body>
+</html>

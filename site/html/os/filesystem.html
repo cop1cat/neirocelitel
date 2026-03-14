@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Файловая система — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="../classical-ml/index.html">Классический ML</a>
+        <a href="../neural-nets/index.html">Нейросети</a>
+        <a href="index.html" class="active">ОС</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="unix-basics.html">Основы UNIX</a></li>
+                    <li><a href="processes.html">Процессы</a></li>
+                    <li><a href="filesystem.html">Файловая система</a></li>
+                    <li><a href="ipc.html">IPC</a></li>
+                    <li><a href="sockets.html">Сокеты</a></li>
+                    <li><a href="shell.html">Shell</a></li>
+                    <li><a href="windows-nt.html">Windows NT</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Файловая система</h2>
+
+                <h3>Типы файлов</h3>
+                <table class="compare-table">
+                    <tr>
+                        <th>Символ</th>
+                        <th>Тип</th>
+                    </tr>
+                    <tr><td><code>-</code></td><td>Обычный файл</td></tr>
+                    <tr><td><code>d</code></td><td>Каталог</td></tr>
+                    <tr><td><code>l</code></td><td>Символьная (мягкая) ссылка</td></tr>
+                    <tr><td><code>p</code></td><td>Канал / FIFO файл</td></tr>
+                    <tr><td><code>c</code></td><td>Символьное (байт-ориентированное) устройство</td></tr>
+                    <tr><td><code>b</code></td><td>Блочное устройство</td></tr>
+                    <tr><td><code>s</code></td><td>Сокет</td></tr>
+                </table>
+
+                <p>Определить тип файла можно утилитами <code>file</code> или <code>ls -l</code>.</p>
+                <div class="note-block">
+                    Символьная ссылка — ссылка на сам файл, отображается в таблице файловых дескрипторов. Жёсткая ссылка — альтернативное имя файла.
+                </div>
+
+                <h3>Индексный дескриптор (inode)</h3>
+                <p>Вся информация о файле содержится в индексном дескрипторе (i-узле, inode). Это структура данных со следующими полями:</p>
+                <ul class="content-list">
+                    <li>Размер файла (в байтах)</li>
+                    <li>Права доступа</li>
+                    <li>Количество жёстких ссылок</li>
+                    <li>Идентификатор владельца (UID) и группы (GID)</li>
+                    <li>Время последнего доступа, модификации, изменения прав</li>
+                    <li>Системный номер inode</li>
+                    <li>Индекс файловой системы (присваивается при <code>mount</code>)</li>
+                    <li>Тип файла и тип организации (прямая / последовательная)</li>
+                    <li>Физический адрес на диске</li>
+                    <li>Диспозиция: постоянный / временный / рабочий</li>
+                </ul>
+                <div class="note-block">
+                    Имени файла в inode нет — это позволяет делать на него несколько ссылок. Имена хранятся в каталогах.
+                </div>
+
+                <h3>Блоки и хранение файлов</h3>
+                <p>Перед использованием диск форматируется — разбивается на блоки. Обычный размер блока — 4096 байт. Файл занимает целое число блоков: файл размером 4098 байт займёт 2 блока (8192 байта).</p>
+                <p>Схемы хранения файлов: FAT, INODE, NTFS.</p>
+
+                <h3>Таблица индексных дескрипторов</h3>
+                <p>Всегда находится в оперативной памяти. В памяти держится информация только об открытых файлах — остальные хранятся на диске. Каждая запись идентифицируется по номеру inode и идентификатору файловой системы.</p>
+                <p>При создании нового файла ядро создаёт новую запись в таблице и добавляет имя файла и номер inode в соответствующий каталог.</p>
+
+                <h3>Таблица открытых файлов ядра</h3>
+                <p>Фиксирует все открытые в системе файлы. Каждая запись содержит:</p>
+                <ul class="content-list">
+                    <li>Ссылку на inode открытого файла</li>
+                    <li>Режим открытия файла</li>
+                    <li>Указатель текущей позиции в файле</li>
+                    <li>Количество пользовательских дескрипторов этого файла</li>
+                </ul>
+
+                <h3>Стандартные дескрипторы процесса</h3>
+                <p>При создании любого процесса ОС автоматически открывает три файла:</p>
+                <table class="compare-table">
+                    <tr>
+                        <th>Дескриптор</th>
+                        <th>Файл</th>
+                        <th>Назначение</th>
+                    </tr>
+                    <tr>
+                        <td>0</td>
+                        <td>/dev/tty (чтение)</td>
+                        <td>Стандартный ввод</td>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>/dev/tty (запись)</td>
+                        <td>Стандартный вывод</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>/dev/tty (чтение/запись)</td>
+                        <td>Стандартный поток ошибок</td>
+                    </tr>
+                </table>
+
+                <h3>Системные вызовы для работы с файлами</h3>
+
+                <h4>open()</h4>
+                <pre class="code-block">int open(char *name, int flag);</pre>
+                <p>Открывает существующий файл. Возвращает номер первой свободной записи в таблице дескрипторов или -1 при ошибке.</p>
+                <p>Макросы из <code>fcntl.h</code>: <code>O_RDONLY</code>, <code>O_WRONLY</code>, <code>O_RDWR</code>, <code>O_CREAT</code>.</p>
+                <pre class="code-block">close(1);
+open("file.txt", O_WRONLY);
+/* Теперь стандартный вывод идёт в file.txt */</pre>
+
+                <h4>creat()</h4>
+                <pre class="code-block">int creat(char *name, int mode);</pre>
+                <p>Создаёт файл и открывает его на запись. Если файл существует — очищает его.</p>
+
+                <h4>lseek()</h4>
+                <pre class="code-block">off_t lseek(int fd, off_t offset, int whence);</pre>
+                <p>Перемещает указатель чтения/записи в файле.</p>
+
+                <h3>Утилиты для работы с файлами</h3>
+                <pre class="code-block">ls -l        # список файлов с типами и правами
+stat file    # подробная статистика файла
+file name    # определить тип файла
+find . -name "*.c"  # поиск файлов</pre>
+
+                <h3>Структура файловой системы Linux</h3>
+                <pre class="code-block">/
+├── bin/    (ls, cat, cp, rm, ...)
+├── usr/
+│   ├── bin/    (who, wc, file, ...)
+│   ├── lib/
+│   └── include/
+├── dev/
+└── etc/</pre>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; <span id="year"></span> НейроЦелитель</div>
+    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</div>
+</body>
+</html>

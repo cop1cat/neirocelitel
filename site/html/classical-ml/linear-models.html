@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Линейные модели — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ]})"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="index.html" class="active">Классический ML</a>
+        <a href="../neural-nets/index.html">Нейросети</a>
+        <a href="../os/index.html">ОС</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="intro.html">Введение</a></li>
+                    <li><a href="metrics.html">Метрики качества</a></li>
+                    <li><a href="linear-models.html">Линейные модели</a></li>
+                    <li><a href="loss-functions.html">Функции потерь</a></li>
+                    <li><a href="decision-trees.html">Решающие деревья</a></li>
+                    <li><a href="bias-variance.html">Bias-Variance</a></li>
+                    <li><a href="ensembles.html">Бэггинг и Random Forest</a></li>
+                    <li><a href="boosting.html">Градиентный бустинг</a></li>
+                    <li><a href="boosting-libs.html">CatBoost, LightGBM, XGBoost</a></li>
+                    <li><a href="clustering.html">Кластеризация</a></li>
+                    <li><a href="validation.html">Валидация и интерпретируемость</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Линейные модели</h2>
+
+                <h3>Применимость линейных моделей</h3>
+                <p>Линейные модели работают хорошо в двух случаях:</p>
+                <ul class="content-list">
+                    <li>Признаки влияют на ответ независимо друг от друга.</li>
+                    <li>Признаки влияют на ответ линейно.</li>
+                </ul>
+
+                <h3>Теорема Гаусса-Маркова</h3>
+                <p>Пусть \(Y = Xw + \varepsilon\), где \(\varepsilon = [\varepsilon_1 \dots \varepsilon_n]\). Если выполнены условия:</p>
+                <ul class="content-list">
+                    <li>\(\mathbb{E}(\varepsilon_i) = 0 \quad \forall i\)</li>
+                    <li>\(\text{Var}(\varepsilon_i) = \sigma^2 < \infty \quad \forall i\)</li>
+                    <li>\(\text{Cov}(\varepsilon_i, \varepsilon_j) = 0 \quad \forall i \neq j\)</li>
+                </ul>
+                <p>Тогда \(\vec{w} = (X^T X)^{-1} X^T Y\) — лучшая несмещённая оценка при квадратичной ошибке без регуляризации.</p>
+                <div class="note-block">
+                    При использовании регуляризации или градиентного обучения результат теоремы не гарантируется. Лучше смотреть на характер шума при обучении модели. Методы без градиентного спуска называют методами нулевого порядка.
+                </div>
+
+                <h3>Признаки в линейных моделях</h3>
+
+                <h4>Категориальные признаки</h4>
+                <p>Пусть \(x_j \in \{C_1, \dots, C_m\}\) — категориальный признак (например, районы Москвы). Для работы с ним используют <strong>one-hot encoding</strong>:</p>
+                <ul class="content-list">
+                    <li>Строим \(m\) бинарных признаков \(b_1(x), \dots, b_m(x)\)</li>
+                    <li>\(b_i(x) = [x_j = C_i]\)</li>
+                </ul>
+                <p>Если категорий слишком много, малочисленные группы можно объединять.</p>
+
+                <h4>Бинаризация признаков</h4>
+                <p>В качестве признаков рассматривается попадание в интервал:</p>
+                <p>\[[0; t_0],\ [t_0; t_1],\ [t_1; t_2],\ \dots,\ [t_m; +\infty)\]</p>
+
+                <h4>Полиномиальные признаки</h4>
+                <p>Можно добавлять функции от переменных: \(x \to f(x)\). Проблема — не всегда очевидно, какие функции выбирать.</p>
+
+                <h3>Обучение линейной регрессии</h3>
+                <p>Минимизируем квадратичную ошибку:</p>
+                <p>\[Q(w) = \frac{1}{\ell} \sum_{i=1}^\ell (\langle w, x_i \rangle - y_i)^2 = \frac{1}{\ell} \|Xw - y\|^2 \to \min_w\]</p>
+                <p>Аналитическое решение:</p>
+                <p>\[w_* = (X^T X)^{-1} X^T y\]</p>
+                <div class="note-block">
+                    Обращение матрицы имеет сложность \(O(d^3)\). Для сложных функций потерь аналитического решения нет. Поэтому на практике используют градиентный спуск.
+                </div>
+
+                <h3>Многоклассовая классификация</h3>
+
+                <h4>1. Сведение к серии бинарных задач</h4>
+
+                <p><strong>Один против всех (one-vs-all).</strong> Строим отдельный классификатор \(b_k(x)\) для каждого класса, обучая его на \(X_k = (x_i, [y_i = y_k])\). Итоговый прогноз:</p>
+                <p>\[a(x) = \mathop{\text{argmax}}_{k=1\dots K}\ b_k(x)\]</p>
+                <p>Плюсы: просто построить. Минусы: классификаторы не знают друг о друге, риск переобучения одного из них портит результат.</p>
+
+                <p><strong>Все против всех (all-vs-all).</strong> Строим \(C^2_K\) классификаторов \(a_{ij}\), каждый обучается на парах классов \(i\) и \(j\). Итоговый прогноз — голосование:</p>
+                <p>\[a(x) = \mathop{\text{argmax}}_{n=1\dots K} \sum_{j \neq k} [a_{kj}(x) = n]\]</p>
+                <p>Плюсы: нет проблем с некалиброванными уверенностями. Минусы: \(K^2\) классификаторов.</p>
+
+                <h4>2. Прямые подходы</h4>
+                <p>Многоклассовая логистическая регрессия. Строим по одному линейному предсказателю на класс, затем применяем softmax:</p>
+                <p>\[\text{Softmax}(z_1, \dots, z_K) = \left( \frac{e^{z_1}}{\sum_{i=1}^K e^{z_i}},\ \dots,\ \frac{e^{z_K}}{\sum_{i=1}^K e^{z_i}} \right)\]</p>
+                <p>Оптимизируем логарифм правдоподобия:</p>
+                <p>\[\sum_{i=1}^\ell \log P(y = y_i \mid x) \to \max_{w, w_0}\]</p>
+
+                <h3>Метрики многоклассовой классификации</h3>
+                <ul class="content-list">
+                    <li><strong>Accuracy:</strong> \(\frac{1}{\ell} \sum_{i=1}^\ell [a(x_i) = y_i]\) — легко переносится на многоклассовый случай.</li>
+                    <li><strong>Макро- и микроусреднение</strong> precision/recall/F1 по каждому классу \(k\) через \(TP_k, TN_k, FP_k, FN_k\).</li>
+                </ul>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; 2026 НейроЦелитель</div>
+</div>
+</body>
+</html>

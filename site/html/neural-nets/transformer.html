@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Transformer — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ]})"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="../classical-ml/index.html">Классический ML</a>
+        <a href="index.html" class="active">Нейросети</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="intro.html">Полносвязные сети</a></li>
+                    <li><a href="cnn.html">CNN</a></li>
+                    <li><a href="yolo.html">YOLO</a></li>
+                    <li><a href="rnn.html">RNN и LSTM</a></li>
+                    <li><a href="transformer.html">Transformer</a></li>
+                    <li><a href="distillation.html">Дистилляция знаний</a></li>
+                    <li><a href="recsys.html">Рекомендательные системы</a></li>
+                    <li><a href="nlp.html">Работа с текстом</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Transformer</h2>
+
+                <div class="tip-block">
+                    Ключевая идея Transformer — механизм <strong>Multi-Head Attention</strong>, позволяющий модели параллельно обрабатывать зависимости между всеми позициями последовательности.
+                </div>
+
+                <h3>Энкодер</h3>
+                <p>Входные данные кодируются в векторы эмбеддингов (например, через Word2Vec или обучаемые эмбеддинги). К ним добавляется <strong>Positional Encoding</strong> — компонент, кодирующий позицию слова в последовательности, так как Transformer сам по себе не имеет информации о порядке.</p>
+
+                <h4>Single-Head Attention</h4>
+                <p>Используются три обучаемые матрицы:</p>
+                <ul class="content-list">
+                    <li><strong>Query (Q)</strong> — насколько текущее слово связано с другими.</li>
+                    <li><strong>Key (K)</strong> — насколько другие слова связаны с текущим.</li>
+                    <li><strong>Value (V)</strong> — информация о значении слова в контексте.</li>
+                </ul>
+                <p>Вычисление attention:</p>
+                <p>\[\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right) V\]</p>
+                <p>Деление на \(\sqrt{d_k}\) стабилизирует градиенты при большой размерности.</p>
+
+                <h4>Multi-Head Attention</h4>
+                <p>Вместо одного набора \(Q, K, V\) обучаются несколько — <em>головы</em>. Каждая голова фокусируется на разных аспектах входа. Результаты конкатенируются и проецируются обучаемой матрицей:</p>
+                <p>\[\text{MultiHead}(Q,K,V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h) W^O\]</p>
+
+                <h4>Структура одного блока энкодера</h4>
+                <ul class="content-list">
+                    <li>Multi-Head Attention.</li>
+                    <li>Add &amp; Norm — остаточное соединение и Layer Normalization.</li>
+                    <li>Feed-Forward Network (FFN) с активацией ReLU.</li>
+                    <li>Add &amp; Norm.</li>
+                </ul>
+
+                <h3>Декодер</h3>
+                <p>Декодер отличается от энкодера наличием <strong>Masked Multi-Head Attention</strong>: маскируются будущие позиции, чтобы модель не могла заглядывать вперёд при генерации. Это реализуется через треугольную маску — зануление будущих позиций в матрице внимания.</p>
+                <p>Далее следует обычный Multi-Head Attention, Add &amp; Norm, FFN, и на выходе — линейный слой с softmax для получения вероятностей слов.</p>
+
+                <h3>Стратегии генерации текста</h3>
+                <table class="compare-table">
+                    <tr>
+                        <th>Метод</th>
+                        <th>Идея</th>
+                        <th>Особенности</th>
+                    </tr>
+                    <tr>
+                        <td>Greedy Search</td>
+                        <td>На каждом шаге выбирается наиболее вероятное слово</td>
+                        <td>Быстро, но субоптимально</td>
+                    </tr>
+                    <tr>
+                        <td>Beam Search</td>
+                        <td>На каждом шаге удерживается \(B\) наиболее вероятных последовательностей</td>
+                        <td>Лучше качество, больше вычислений</td>
+                    </tr>
+                </table>
+
+                <h3>Применимость</h3>
+                <p>Transformer изначально разработан для NLP, но сейчас является универсальной архитектурой: Vision Transformer (ViT) применяет тот же механизм к изображениям, разбивая их на патчи.</p>
+
+                <h3>Полезные ссылки</h3>
+                <ul class="content-list">
+                    <li><a href="https://jalammar.github.io/illustrated-transformer/" style="color: #1a5276;">The Illustrated Transformer</a></li>
+                    <li><a href="https://lena-voita.github.io/nlp_course/seq2seq_and_attention.html" style="color: #1a5276;">Seq2seq and Attention — Lena Voita</a></li>
+                    <li><a href="https://nlp.seas.harvard.edu/2018/04/03/attention.html" style="color: #1a5276;">The Annotated Transformer</a></li>
+                </ul>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; 2026 НейроЦелитель</div>
+</div>
+</body>
+</html>

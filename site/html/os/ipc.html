@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>IPC — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="../classical-ml/index.html">Классический ML</a>
+        <a href="../neural-nets/index.html">Нейросети</a>
+        <a href="index.html" class="active">ОС</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="unix-basics.html">Основы UNIX</a></li>
+                    <li><a href="processes.html">Процессы</a></li>
+                    <li><a href="filesystem.html">Файловая система</a></li>
+                    <li><a href="ipc.html">IPC</a></li>
+                    <li><a href="sockets.html">Сокеты</a></li>
+                    <li><a href="shell.html">Shell</a></li>
+                    <li><a href="windows-nt.html">Windows NT</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Межпроцессное взаимодействие (IPC)</h2>
+
+                <h3>Очереди сообщений</h3>
+                <p>Реализованы как специальный файл. В адресном пространстве ядра ведётся таблица всех очередей. Каждое сообщение имеет тип (целое положительное число) и текст.</p>
+
+                <pre class="code-block">struct msgbuf {
+    long mtype;           /* тип сообщения (> 0) */
+    char mtext[MSGMAX];   /* текст (обычно до 2048 байт) */
+};</pre>
+
+                <h4>Системные вызовы</h4>
+                <pre class="code-block">int msgget(key_t key, int flag);        /* создать/открыть */
+int msgsnd(int fd, const void *buf, size_t len, int flag);  /* отправить */
+ssize_t msgrcv(int fd, void *buf, size_t len, long mtype, int flag); /* получить */
+int msgctl(int fd, int cmd, struct msqid_ds *buf); /* управление */</pre>
+
+                <p>Параметр <code>mtype</code> в <code>msgrcv()</code>:</p>
+                <ul class="content-list">
+                    <li><code>0</code> — принять самое старое сообщение любого типа.</li>
+                    <li><code>&gt; 0</code> — принять сообщение указанного типа.</li>
+                    <li><code>&lt; 0</code> — принять сообщение с типом ≤ |mtype|.</li>
+                </ul>
+
+                <pre class="code-block">/* Создать очередь с ключом 15 */
+int fd = msgget(15, IPC_CREAT | 0644);
+
+/* Отправить */
+msg.mtype = 1;
+strcpy(msg.mtext, "Hello");
+msgsnd(fd, &msg, strlen(msg.mtext) + 1, 0);
+
+/* Получить */
+msgrcv(fd, &msg, 2048, 0, 0);
+
+/* Удалить */
+msgctl(fd, IPC_RMID, NULL);</pre>
+
+                <pre class="code-block">ipcs -q           # показать очереди
+ipcrm -q &lt;id&gt;    # удалить по id
+ipcrm -Q &lt;key&gt;   # удалить по ключу</pre>
+
+                <h3>Семафоры</h3>
+                <p>Переменная с целым неотрицательным значением для синхронизации процессов. В UNIX семафоры организованы в наборы (массивы).</p>
+
+                <p>Атрибуты каждого семафора:</p>
+                <ul class="content-list">
+                    <li><code>semval</code> — текущее значение.</li>
+                    <li><code>sempid</code> — PID процесса, последним изменившего.</li>
+                    <li><code>semncnt</code> — число процессов, ожидающих увеличения.</li>
+                    <li><code>semzcnt</code> — число процессов, ожидающих обнуления.</li>
+                </ul>
+
+                <h4>Системные вызовы</h4>
+                <pre class="code-block">int semget(key_t key, int nsems, int flag);  /* создать/открыть набор */
+int semop(int fd, struct sembuf *ops, size_t nops);  /* операции */
+int semctl(int fd, int semnum, int cmd, union semun arg); /* управление */</pre>
+
+                <pre class="code-block">struct sembuf {
+    unsigned short sem_num;  /* номер семафора */
+    short sem_op;            /* операция: >0 (V), <0 (P), =0 (ждать нуля) */
+    short sem_flg;           /* 0, IPC_NOWAIT, SEM_UNDO */
+};</pre>
+
+                <div class="tip-block">
+                    <code>SEM_UNDO</code> — отменить изменения семафора при завершении процесса. Защита от зависания при аварийном завершении.
+                </div>
+
+                <pre class="code-block">ipcs -s           # показать семафоры
+ipcrm -s &lt;id&gt;    # удалить по id</pre>
+
+                <h3>Разделяемая память</h3>
+                <p>Наиболее быстрый способ IPC. Несколько процессов отображают один сегмент памяти в свои адресные пространства.</p>
+
+                <h4>Системные вызовы</h4>
+                <pre class="code-block">int shmget(key_t key, size_t size, int flag);   /* создать/открыть */
+void *shmat(int fd, const void *addr, int flag); /* присоединить */
+int shmdt(const void *addr);                     /* отсоединить */
+int shmctl(int fd, int cmd, struct shmid_ds *buf); /* управление */</pre>
+
+                <pre class="code-block">int fd = shmget(5, 4096, IPC_CREAT | 0644);
+char *addr = (char *)shmat(fd, NULL, 0);
+strcpy(addr, "Привет из разделяемой памяти!");
+shmdt(addr);
+shmctl(fd, IPC_RMID, NULL);</pre>
+
+                <div class="warn-block">
+                    Удаление сегмента (<code>IPC_RMID</code>) происходит только после отсоединения всех процессов. Для синхронизации доступа используют семафоры.
+                </div>
+
+                <pre class="code-block">ipcs -m           # показать сегменты памяти
+ipcrm -m &lt;id&gt;    # удалить</pre>
+
+                <h3>Сравнение механизмов IPC</h3>
+                <table class="compare-table">
+                    <tr>
+                        <th>Механизм</th>
+                        <th>Скорость</th>
+                        <th>

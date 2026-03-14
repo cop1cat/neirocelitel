@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Бэггинг и Random Forest — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ]})"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="index.html" class="active">Классический ML</a>
+        <a href="../neural-nets/index.html">Нейросети</a>
+        <a href="../os/index.html">ОС</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="intro.html">Введение</a></li>
+                    <li><a href="metrics.html">Метрики качества</a></li>
+                    <li><a href="linear-models.html">Линейные модели</a></li>
+                    <li><a href="loss-functions.html">Функции потерь</a></li>
+                    <li><a href="decision-trees.html">Решающие деревья</a></li>
+                    <li><a href="bias-variance.html">Bias-Variance</a></li>
+                    <li><a href="ensembles.html">Бэггинг и Random Forest</a></li>
+                    <li><a href="boosting.html">Градиентный бустинг</a></li>
+                    <li><a href="boosting-libs.html">CatBoost, LightGBM, XGBoost</a></li>
+                    <li><a href="clustering.html">Кластеризация</a></li>
+                    <li><a href="validation.html">Валидация и интерпретируемость</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Бэггинг и Random Forest</h2>
+
+                <h3>Мотивация</h3>
+                <p>Решающие деревья неустойчивы: два дерева, обученных на слегка разных подвыборках, дают сильно отличающиеся результаты. Идея: обучить несколько моделей и усреднить их прогнозы.</p>
+
+                <h3>Бутстрап (Bootstrap)</h3>
+                <p>Генерация подвыборки из \(\mathbb{X}\) путём выбора \(\ell\) объектов <em>с возвращением</em>:</p>
+                <p>\[\mathbb{X} \to \bar{\mathbb{X}}_1, \dots, \bar{\mathbb{X}}_N\]</p>
+                <p>Каждая подвыборка содержит примерно 63% уникальных объектов исходной выборки.</p>
+
+                <h3>Бэггинг (Bootstrap Aggregating)</h3>
+                <p>Обучаем \(N\) базовых моделей на бутстрап-подвыборках:</p>
+                <p>\[b_n(x) = \mu(\bar{\mathbb{X}}_n), \quad n = 1, \dots, N\]</p>
+                <p>Итоговая композиция:</p>
+                <p>\[a_N(x) = \frac{1}{N} \sum_{n=1}^N b_n(x)\]</p>
+
+                <h4>Влияние на bias и variance</h4>
+                <p>\[\text{bias}(a_N) = \text{bias}(b_n)\]</p>
+                <p>\[\text{var}(a_N) = \frac{1}{N}\text{var}(b_n) + \frac{N(N-1)}{N^2}\text{cov}(b_n(x), b_m(x))\]</p>
+
+                <div class="note-block">
+                    Бэггинг не меняет bias. Если базовые модели слабые — композиция тоже будет слабой. Variance снижается тем сильнее, чем менее скоррелированы базовые модели.
+                </div>
+
+                <h4>Теоретическая оценка</h4>
+                <p>При допущении об отсутствии корреляции ошибок базовых моделей (\(\mathbb{E}\varepsilon_i(x)\varepsilon_j(x) = 0,\ i \neq j\)) и несмещённости (\(\mathbb{E}\varepsilon_j(x) = 0\)):</p>
+                <p>\[\mathbb{E}\left(\frac{1}{N}\sum_{n=1}^N b_n(x) - y\right)^2 = \frac{E_1}{N}\]</p>
+                <p>Усреднение \(N\) моделей снижает ошибку в \(N\) раз. На практике это не достигается из-за корреляции между моделями, но эффект всё равно существенный.</p>
+
+                <h3>Random Forest</h3>
+                <div class="tip-block">
+                    <strong>Ключевая идея:</strong> чтобы снизить корреляцию деревьев, при построении каждого сплита признак выбирается не из всего пространства, а из случайного подмножества размера \(k\).
+                </div>
+
+                <h4>Алгоритм</h4>
+                <ul class="content-list">
+                    <li>Деревья обучаются с большой глубиной (например, \(\text{min\_sample\_leaf} = 3\)).</li>
+                    <li>Каждое дерево обучается на бутстрап-подвыборке.</li>
+                    <li>В каждой вершине признак выбирается из подвыборки размера \(k\).</li>
+                </ul>
+
+                <h4>Рекомендации по выбору \(k\)</h4>
+                <table class="compare-table">
+                    <tr>
+                        <th>Задача</th>
+                        <th>Рекомендуемый \(k\)</th>
+                    </tr>
+                    <tr>
+                        <td>Классификация</td>
+                        <td>\(k = \sqrt{d}\)</td>
+                    </tr>
+                    <tr>
+                        <td>Регрессия</td>
+                        <td>\(k = d / 3\)</td>
+                    </tr>
+                </table>
+
+                <h4>Итоговый прогноз</h4>
+                <ul class="content-list">
+                    <li>Классификация: \(\mathop{\text{argmax}}_{y \in \mathbb{Y}} \sum_{n=1}^N b_n(x)\) — голосование большинством.</li>
+                    <li>Регрессия: \(\frac{1}{N} \sum_{n=1}^N b_n(x)\) — среднее.</li>
+                </ul>
+
+                <h4>Гиперпараметры</h4>
+                <ul class="content-list">
+                    <li>Число деревьев \(N\) — можно брать большим, качество монотонно растёт и стабилизируется.</li>
+                    <li>Размер подвыборки признаков \(k\).</li>
+                    <li>Максимальная глубина дерева.</li>
+                </ul>
+
+                <h4>Ограничения</h4>
+                <ul class="content-list">
+                    <li>Медленно обучается на больших данных.</li>
+                    <li>Если \(\text{bias}(b_n) \gg 0\), RF будет плох — нужны достаточно глубокие деревья.</li>
+                </ul>
+
+                <h3>Out-of-Bag (OOB) оценка</h3>
+                <p>Поскольку каждое дерево обучалось не на всех объектах, на объектах, не вошедших в подвыборку, можно считать ошибку без отдельной валидационной выборки:</p>
+                <p>\[\text{OOB} = \frac{1}{\ell} \sum_{i=1}^\ell L\left(y_i,\ \frac{\sum_{n=1}^N [x_i \notin \bar{\mathbb{X}}_n]\ b_n(x_i)}{\sum_{n=1}^N [x_i \notin \bar{\mathbb{X}}_n]}\right)\]</p>
+                <p>OOB-оценка близка к LOO-кросс-валидации и не требует дополнительных вычислений.</p>
+
+                <h3>Важность признаков (permutation importance)</h3>
+                <p>Важность \(j\)-го признака оценивается как прирост ошибки при случайном перемешивании значений этого признака в тестовой выборке:</p>
+                <p>\[q_j = Q^\text{test}_j - Q^\text{test}\]</p>
+                <ul class="content-list">
+                    <li>\(q_j \approx 0\) — признак не важен.</li>
+                    <li>\(q_j > 0\) — признак важен.</li>
+                    <li>\(q_j < 0\) — ошибка в данных или в коде.</li>
+                </ul>
+                <div class="note-block">
+                    Permutation importance можно применять не только к Random Forest, но и к любой другой модели.
+                </div>
+
+                <h3>Стекинг (Stacking)</h3>
+                <p>Более сложный вариант ансамблирования. Выборка делится на \(K\) фолдов. Базовые модели \(b_n\) обучаются на \(\mathbb{X} \setminus \mathbb{X}_k\), а мета-модель \(a\) обучается на их предсказаниях:</p>
+                <p>\[\sum_{k=1}^K \sum_{(x_i, y_i) \in \mathbb{X}_k} L\left(y_i, a(b_1^{-k}, \dots, b_n^{-k})\right) \to \min_a\]</p>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; 2026 НейроЦелитель</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Bias-Variance — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ]})"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="index.html" class="active">Классический ML</a>
+        <a href="../neural-nets/index.html">Нейросети</a>
+        <a href="../os/index.html">ОС</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="intro.html">Введение</a></li>
+                    <li><a href="metrics.html">Метрики качества</a></li>
+                    <li><a href="linear-models.html">Линейные модели</a></li>
+                    <li><a href="loss-functions.html">Функции потерь</a></li>
+                    <li><a href="decision-trees.html">Решающие деревья</a></li>
+                    <li><a href="bias-variance.html">Bias-Variance</a></li>
+                    <li><a href="ensembles.html">Бэггинг и Random Forest</a></li>
+                    <li><a href="boosting.html">Градиентный бустинг</a></li>
+                    <li><a href="boosting-libs.html">CatBoost, LightGBM, XGBoost</a></li>
+                    <li><a href="clustering.html">Кластеризация</a></li>
+                    <li><a href="validation.html">Валидация и интерпретируемость</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Bias-Variance Decomposition</h2>
+
+                <h3>Постановка</h3>
+                <p>Пусть выборка \(\mathbb{X} = (x_i, y_i)_{i=1}^\ell\), \(y \in \mathbb{R}\), функция потерь \(L(y, a) = (y - a)^2\). Допустим, мы заранее знаем распределение данных на \(\mathbb{X} \times \mathbb{Y}\).</p>
+                <p>Среднеквадратичный риск:</p>
+                <p>\[R(a) = \mathbb{E}_{x,y}(y - a(x))^2\]</p>
+                <p>Оптимальная модель:</p>
+                <p>\[a_*(x) = \int_\mathbb{Y} y \cdot p(y \mid x)\ dy = \mathbb{E}(y \mid x)\]</p>
+
+                <h3>Ошибка метода обучения</h3>
+                <p>Метод обучения \(\mu: (\mathbb{X} \times \mathbb{Y})^\ell \to A\) строит модель \(\mu(\mathbb{X})\) по выборке. Его ошибка:</p>
+                <p>\[L(\mu) = \mathbb{E}_x \mathbb{E}_\mathbb{X} (y - \mu(\mathbb{X})(x))^2\]</p>
+
+                <h3>Разложение на три слагаемых</h3>
+
+                <div class="tip-block">
+                    \[L(\mu) = \underbrace{\mathbb{E}_{x,y}(y - \mathbb{E}(y \mid x))^2}_{\text{шум (noise)}} + \underbrace{\mathbb{E}_x\left(\mathbb{E}_\mathbb{X}\mu(\mathbb{X}) - \mathbb{E}(y \mid x)\right)^2}_{\text{смещение (bias)}} + \underbrace{\mathbb{E}_x \mathbb{E}_\mathbb{X}(\mu(\mathbb{X}) - \mathbb{E}_\mathbb{X}\mu(\mathbb{X}))^2}_{\text{разброс (variance)}}\]
+                </div>
+
+                <table class="compare-table">
+                    <tr>
+                        <th>Компонента</th>
+                        <th>Что означает</th>
+                        <th>Как уменьшить</th>
+                    </tr>
+                    <tr>
+                        <td>Шум (noise)</td>
+                        <td>Ошибка лучшей возможной модели — нижняя граница. Не зависит от алгоритма.</td>
+                        <td>Никак — это свойство данных.</td>
+                    </tr>
+                    <tr>
+                        <td>Смещение (bias)</td>
+                        <td>Насколько семейство моделей подходит для задачи. Высокий bias — недообучение.</td>
+                        <td>Усложнить модель, добавить признаки.</td>
+                    </tr>
+                    <tr>
+                        <td>Разброс (variance)</td>
+                        <td>Насколько метод устойчив к изменению выборки. Высокий variance — переобучение.</td>
+                        <td>Регуляризация, ансамблирование, больше данных.</td>
+                    </tr>
+                </table>
+
+                <h3>Примеры для разных моделей</h3>
+
+                <h4>Линейные модели</h4>
+                <p>Низкий variance (устойчивы к изменению выборки), но высокий bias на нелинейных задачах.</p>
+
+                <h4>Решающие деревья</h4>
+                <ul class="content-list">
+                    <li>Глубина 2 — высокий bias, низкий variance.</li>
+                    <li>Глубина 5 — баланс.</li>
+                    <li>Глубина 8 — низкий bias, высокий variance.</li>
+                    <li>Усреднение \(N\) деревьев глубины 8: bias остаётся таким же, variance уменьшается.</li>
+                </ul>
+
+                <div class="note-block">
+                    Усреднение моделей не меняет bias, но снижает variance. Это ключевая идея бэггинга.
+                </div>
+
+                <h3>Многомерная классификация (multilabel)</h3>
+                <p>В задаче \(a: \mathbb{X} \to \{0, 1\}^K\) основной подход — <strong>Binary Relevance</strong>: обучаем отдельный классификатор для каждого класса и собираем вектор предсказаний.</p>
+                <p>Проблема: предсказания могут быть скоррелированы, а классификаторы ничего не знают друг о друге.</p>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; <span id="year"></span> НейроЦелитель</div>
+    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</div>
+</body>
+</html>

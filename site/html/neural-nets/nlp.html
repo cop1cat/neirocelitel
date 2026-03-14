@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Работа с текстом — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ]})"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="../classical-ml/index.html">Классический ML</a>
+        <a href="index.html" class="active">Нейросети</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="intro.html">Полносвязные сети</a></li>
+                    <li><a href="cnn.html">CNN</a></li>
+                    <li><a href="yolo.html">YOLO</a></li>
+                    <li><a href="rnn.html">RNN и LSTM</a></li>
+                    <li><a href="transformer.html">Transformer</a></li>
+                    <li><a href="distillation.html">Дистилляция знаний</a></li>
+                    <li><a href="recsys.html">Рекомендательные системы</a></li>
+                    <li><a href="nlp.html">Работа с текстом</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Работа с текстом</h2>
+
+                <h3>Bag-of-Words</h3>
+                <p>Самый простой способ представить текст: считаем количество вхождений каждого слова и записываем в вектор фиксированной длины (размер словаря). Порядок слов игнорируется.</p>
+                <div class="warn-block">
+                    Bag-of-Words не учитывает порядок слов и контекст. «Кот съел мышь» и «Мышь съела кота» дадут одинаковое представление.
+                </div>
+
+                <h3>TF-IDF</h3>
+                <p>Взвешенный вариант Bag-of-Words. Слова, часто встречающиеся во всём корпусе (стоп-слова), получают меньший вес:</p>
+                <p>\[\text{tf-idf}(w, d) = \text{tf}(w, d) \cdot \text{idf}(w)\]</p>
+                <p>где:</p>
+                <ul class="content-list">
+                    <li>\(\text{tf}(w, d)\) — сколько раз слово \(w\) встретилось в документе \(d\).</li>
+                    <li>\(\text{idf}(w) = \log \frac{\ell}{\text{число документов, содержащих } w}\) — обратная документная частота.</li>
+                </ul>
+
+                <h3>N-граммы</h3>
+                <p>Расширение Bag-of-Words: в словарь добавляются не только отдельные слова, но и последовательности из \(n\) слов. Биграммы (2-граммы) позволяют учесть словосочетания вроде «машинное обучение» или «случайный лес».</p>
+
+                <h3>Local-Global Attention</h3>
+                <p>Идея: глобальный attention лучше улавливает общий контекст, локальный — детали. Совмещение двух подходов даёт лучшее качество.</p>
+
+                <h4>Архитектура</h4>
+                <p>Размерности входа:</p>
+                <ul class="content-list">
+                    <li>\(B\) — размер батча.</li>
+                    <li>\(D\) — глубина эмбеддинга.</li>
+                    <li>\(W, H\) — пространственные размерности карты признаков.</li>
+                </ul>
+                <p>Вектор делится по глубине на количество голов. Для стабилизации градиентов \(\text{head\_dim}\) дополнительно нормируется на корень из размерности — аналогично механизму scaled dot-product attention в Transformer.</p>
+
+                <h4>Обучение на временных рядах</h4>
+                <p>При обучении на K-Fold можно ограничивать размер окна. Три основных подхода к предсказанию временных рядов:</p>
+                <table class="compare-table">
+                    <tr>
+                        <th>Подход</th>
+                        <th>Идея</th>
+                    </tr>
+                    <tr>
+                        <td>Прямой (Direct)</td>
+                        <td>Обучаем отдельную модель для предсказания каждого момента времени</td>
+                    </tr>
+                    <tr>
+                        <td>Рекурсивный (Recursive)</td>
+                        <td>Обучаем одну модель, используем её предсказания как вход для следующего шага</td>
+                    </tr>
+                    <tr>
+                        <td>Гибридный</td>
+                        <td>Совмещает прямой и рекурсивный подходы</td>
+                    </tr>
+                </table>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; 2026 НейроЦелитель</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Градиентный бустинг — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ]})"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="index.html" class="active">Классический ML</a>
+        <a href="../neural-nets/index.html">Нейросети</a>
+        <a href="../os/index.html">ОС</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="intro.html">Введение</a></li>
+                    <li><a href="metrics.html">Метрики качества</a></li>
+                    <li><a href="linear-models.html">Линейные модели</a></li>
+                    <li><a href="loss-functions.html">Функции потерь</a></li>
+                    <li><a href="decision-trees.html">Решающие деревья</a></li>
+                    <li><a href="bias-variance.html">Bias-Variance</a></li>
+                    <li><a href="ensembles.html">Бэггинг и Random Forest</a></li>
+                    <li><a href="boosting.html">Градиентный бустинг</a></li>
+                    <li><a href="boosting-libs.html">CatBoost, LightGBM, XGBoost</a></li>
+                    <li><a href="clustering.html">Кластеризация</a></li>
+                    <li><a href="validation.html">Валидация и интерпретируемость</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Градиентный бустинг</h2>
+
+                <h3>Идея</h3>
+                <p>Каждая следующая модель корректирует ошибки предыдущих. Итоговая композиция:</p>
+                <p>\[a(x) = \sum_{n=1}^N \gamma_n b_n(x)\]</p>
+
+                <h3>Бустинг для MSE</h3>
+                <p>Модели строятся последовательно. Первая модель \(b_1(x)\) обучается на исходных ответах. Каждая следующая \(b_N(x)\) обучается предсказывать остатки — разность между истинным ответом и текущим прогнозом:</p>
+                <p>\[b_N(x):\ \frac{1}{\ell}\sum_{i=1}^\ell (b_N(x_i) - (y_i - a_{N-1}(x_i)))^2 \to \min_{b_N}\]</p>
+                <p>Коэффициент \(\gamma_N\) подбирается одномерной оптимизацией. Остановку контролируют по валидационной выборке — бустинг переобучается.</p>
+
+                <h3>Общий случай — градиентный бустинг</h3>
+                <p>Для произвольной дифференцируемой функции потерь \(L(y, z)\) на каждом шаге считаем антиградиент:</p>
+                <p>\[s_i = -\left.\frac{\partial}{\partial z} L(y_i, z)\right|_{z = a_{N-1}(x_i)}\]</p>
+                <p>Затем обучаем \(b_N(x)\) аппроксимировать \(s_i\):</p>
+                <p>\[\frac{1}{\ell}\sum_{i=1}^\ell (b_N(x_i) - s_i)^2 \to \min_{b_N}\]</p>
+                <p>Обновляем композицию: \(a_N(x) = a_{N-1}(x) + b_N(x)\).</p>
+                <div class="tip-block">
+                    Градиентный бустинг — это градиентный спуск в пространстве прогнозов на обучающей выборке. Отличие от обычного GD: мы прибавляем не сам антиградиент \(s_i\), а модель, которая его аппроксимирует.
+                </div>
+
+                <h3>Функции потерь в бустинге</h3>
+                <table class="compare-table">
+                    <tr>
+                        <th>Задача</th>
+                        <th>Функция потерь</th>
+                        <th>Антиградиент \(s_i\)</th>
+                    </tr>
+                    <tr>
+                        <td>Регрессия</td>
+                        <td>MSE: \((y - z)^2\)</td>
+                        <td>\(y_i - a_{N-1}(x_i)\)</td>
+                    </tr>
+                    <tr>
+                        <td>Регрессия</td>
+                        <td>MAE: \(|y - z|\)</td>
+                        <td>\(-\text{sign}(y_i - a_{N-1}(x_i))\)</td>
+                    </tr>
+                    <tr>
+                        <td>Классификация</td>
+                        <td>Log-loss: \(\log(1 + e^{-yz})\)</td>
+                        <td>\(\frac{y_i}{1 + \exp(y_i a_{N-1}(x_i))}\)</td>
+                    </tr>
+                </table>
+                <div class="note-block">
+                    Логистическая функция потерь устойчива к выбросам. Экспоненциальная (\(e^{-yz}\)) — нет: при больших отрицательных отступах веса уходят в бесконечность.
+                </div>
+
+                <h3>Регуляризация</h3>
+                <p>В бустинге важно использовать модели с низким variance — неглубокие деревья.</p>
+                <ul class="content-list">
+                    <li>Если деревья простые — качество ограничено их bias.</li>
+                    <li>Если деревья сложные — риск быстрого переобучения.</li>
+                </ul>
+                <p><strong>Learning rate (сокращение шага):</strong></p>
+                <p>\[a_N(x) = a_{N-1}(x) + \eta b_N(x),\quad \eta \in (0; 1]\]</p>
+                <p>Чем меньше \(\eta\), тем больше оптимальное \(N\) и тем медленнее переобучение.</p>
+                <p><strong>Стохастический градиентный бустинг:</strong> на каждом шаге обучаем \(b_N\) не на всей выборке, а на случайной подвыборке \(|\mathbb{X}_N|\) — гиперпараметр.</p>
+
+                <h3>GBDT — бустинг над деревьями</h3>
+                <p>После того как структура дерева на шаге \(N\) зафиксирована, переподбираем прогнозы в листьях оптимально по исходной функции потерь:</p>
+                <p>\[\sum_{(x_i, y_i) \in R_{Nj}} L(y_i, a_{N-1}(x_i) + c_j) \to \min_{c_j \in \mathbb{R}}\]</p>
+                <p>Для log-loss один шаг метода Ньютона-Рафсона из точки \(c_j = 0\) даёт:</p>
+                <p>\[c_j = -\frac{\sum_{(x_i, y_i) \in R_{Nj}} s_i}{\sum_{(x_i, y_i) \in R_{Nj}} |s_i|(1 - |s_i|)}\]</p>
+
+                <h3>Бустинг второго порядка</h3>
+                <p>Разложим функцию потерь по второму аргументу в ряд Тейлора до второго члена:</p>
+                <p>\[\sum_{i=1}^\ell L(y_i, a_{N-1}(x_i) + b_N(x_i)) \approx \sum_{i=1}^\ell \left(-s_i b_N(x_i) + \frac{1}{2} h_i b_N^2(x_i)\right) \to \min_{b_N}\]</p>
+                <p>Здесь \(h_i = \left.\frac{\partial^2}{\partial z^2} L(y_i, z)\right|_{z = a_{N-1}(x_i)}\) — вторая производная (кривизна функции потерь).</p>
+                <p>При добавлении регуляризации по числу листьев \(J\) и норме прогнозов \(\|b\|^2\):</p>
+                <p>\[\sum_{i=1}^\ell \left(-s_i b_N(x_i) + \frac{1}{2}h_i b_N^2(x_i)\right) + \gamma J + \frac{\lambda}{2}\sum_{j=1}^J b_j^2 \to \min_{b_N}\]</p>
+                <p>При фиксированной структуре дерева оптимальный прогноз в листе \(j\):</p>
+                <p>\[b_j^* = \frac{S_j}{H_j + \lambda},\quad \text{где}\ S_j = \sum_{R_{Nj}} s_i,\ H_j = \sum_{R_{Nj}} h_i\]</p>
+                <p>Значение функционала при оптимальных прогнозах:</p>
+                <p>\[H(B) = -\frac{1}{2}\sum_{j=1}^J \frac{S_j^2}{H_j + \lambda} + \gamma J\]</p>
+                <p>\(H(B)\) используется как impurity при построении дерева — именно так работает XGBoost:</p>
+                <p>\[Q(R, j, t) = H(R) - H(R_l) - H(R_r)\]</p>
+
+                <h3>AdaBoost</h3>
+                <p>Частный случай бустинга с экспоненциальной функцией потерь. Ключевая идея — механизм комитетов: на каждом шаге увеличиваются веса неправильно классифицированных объектов.</p>
+                <table class="compare-table">
+                    <tr>
+                        <th>Достоинства</th>
+                        <th>Недостатки</th>
+                    </tr>
+                    <tr>
+                        <td>Простая реализация</td>
+                        <td>Склонен к переобучению при шуме в данных</td>
+                    </tr>
+                    <tr>
+                        <td>Хорошая обобщающая способность</td>
+                        <td>Требует длинных обучающих выборок</td>
+                    </tr>
+                    <tr>
+                        <td>Идентификация выбросов по большим весам</td>
+                        <td>Уступает бэггингу на малых выборках</td>
+                    </tr>
+                </table>
+
+                <h3>Важные примечания</h3>
+                <div class="note-block">
+                    Бустинг над линейными моделями без нелинейной функции на выходе бессмысленен — получим просто новый набор линейных весов. SVM и логистическая регрессия подходят, так как имеют нелинейную функцию на выходе.
+                </div>
+                <div class="note-block">
+                    При инференсе деревья в бустинге можно вычислять параллельно — предсказания просто суммируются.
+                </div>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; 2026 НейроЦелитель</div>
+</div>
+</body>
+</html>

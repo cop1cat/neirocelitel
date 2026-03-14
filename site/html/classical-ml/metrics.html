@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Метрики качества — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+        ]})"></script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="index.html" class="active">Классический ML</a>
+        <a href="../neural-nets/index.html">Нейросети</a>
+        <a href="../os/index.html">ОС</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="intro.html">Введение</a></li>
+                    <li><a href="metrics.html">Метрики качества</a></li>
+                    <li><a href="linear-models.html">Линейные модели</a></li>
+                    <li><a href="loss-functions.html">Функции потерь</a></li>
+                    <li><a href="decision-trees.html">Решающие деревья</a></li>
+                    <li><a href="bias-variance.html">Bias-Variance</a></li>
+                    <li><a href="ensembles.html">Бэггинг и Random Forest</a></li>
+                    <li><a href="boosting.html">Градиентный бустинг</a></li>
+                    <li><a href="boosting-libs.html">CatBoost, LightGBM, XGBoost</a></li>
+                    <li><a href="clustering.html">Кластеризация</a></li>
+                    <li><a href="validation.html">Валидация и интерпретируемость</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Метрики качества</h2>
+
+                <h3>Функционал ошибки</h3>
+                <p>\[Q(a, L, \mathbb{X}) = \frac{1}{\ell} \sum_{i=1}^\ell L(y_i, a(x_i))\]</p>
+                <p>где \(Q\) — функционал ошибки, \(L\) — функция потерь на одном объекте.</p>
+
+                <h3>Метрики регрессии</h3>
+
+                <h4>MSE и RMSE</h4>
+                <p>\[L(y, z) = (y - z)^2\]</p>
+                <p>MSE плохо интерпретируется (единицы измерения в квадрате), поэтому чаще используют RMSE:</p>
+                <p>\[\text{RMSE}(a, \mathbb{X}) = \sqrt{\frac{1}{\ell} \sum_{i=1}^\ell (y_i - a(x_i))^2}\]</p>
+                <p>Оптимальная константная модель для MSE: \(\bar{y}\).</p>
+
+                <h4>Коэффициент детерминации \(R^2\)</h4>
+                <p>Не всегда понятно, хорошая ли ошибка в абсолютных числах. \(R^2\) нормирует ошибку относительно константной модели:</p>
+                <p>\[R^2 = 1 - \frac{\sum_{i=1}^\ell (a(x_i) - y_i)^2}{\sum_{i=1}^\ell (\bar{y} - y_i)^2}\]</p>
+                <ul class="content-list">
+                    <li>\(a(x_i) = y_i \implies R^2 = 1\) — идеальная модель.</li>
+                    <li>\(a(x_i) = \bar{y} \implies R^2 = 0\) — модель не лучше константы.</li>
+                    <li>Для разумных моделей: \(0 \leq R^2 \leq 1\).</li>
+                </ul>
+
+                <h4>MAE</h4>
+                <p>\[\text{MAE} = \frac{1}{\ell} \sum_{i=1}^\ell |a(x_i) - y_i|\]</p>
+                <div class="tip-block">
+                    MAE устойчивее к выбросам, чем MSE: выброс влияет линейно, а не квадратично.
+                </div>
+
+                <h4>Huber Loss</h4>
+                <p>Компромисс между MSE и MAE: ведёт себя как MSE вблизи нуля и как MAE на больших ошибках:</p>
+                <p>\[L_\delta(y, z) = \begin{cases} \frac{1}{2}(y-z)^2, & |y-z| < \delta \\ \delta\left(|y-z| - \frac{1}{2}\delta\right), & |y-z| \geq \delta \end{cases}\]</p>
+                <div class="note-block">
+                    Проблема Huber Loss: нет второй производной в точке перехода \(|y-z| = \delta\).
+                </div>
+
+                <h4>Log-Cosh</h4>
+                <p>\[L(y, z) = \log \cosh(y - z)\]</p>
+                <p>Гладкий аналог Huber Loss — дважды дифференцируема везде.</p>
+
+                <h4>MSLE</h4>
+                <p>Используется когда ошибка различается на несколько порядков:</p>
+                <p>\[L(y, z) = (\log(z+1) - \log(y+1))^2\]</p>
+
+                <h4>MAPE и SMAPE</h4>
+                <p>\[\text{MAPE} = \frac{1}{\ell} \sum \left|\frac{y_i - a(x_i)}{y_i}\right|\]</p>
+                <table class="compare-table">
+                    <tr>
+                        <th>Плюсы</th>
+                        <th>Минусы</th>
+                    </tr>
+                    <tr>
+                        <td>Хорошая интерпретируемость</td>
+                        <td>Не симметрична</td>
+                    </tr>
+                    <tr>
+                        <td>Работает при разных масштабах</td>
+                        <td>Не определена при \(y_i = 0\)</td>
+                    </tr>
+                </table>
+                <p>Симметричный вариант — SMAPE:</p>
+                <p>\[L(y, z) = \frac{|y - z|}{\frac{|y| + |z|}{2}}\]</p>
+
+                <h3>Метрики классификации</h3>
+
+                <h4>Accuracy</h4>
+                <p>\[\text{accuracy} = \frac{1}{\ell} \sum [a(x_i) = y_i]\]</p>
+                <div class="warn-block">
+                    При дисбалансе классов accuracy вводит в заблуждение. Модель, всегда предсказывающая мажоритарный класс, даёт высокую accuracy. Всегда смотрите на баланс классов вместе с accuracy.
+                </div>
+
+                <h4>Матрица ошибок (Confusion Matrix)</h4>
+                <table class="compare-table">
+                    <tr>
+                        <th></th>
+                        <th>\(y = +1\)</th>
+                        <th>\(y = -1\)</th>
+                    </tr>
+                    <tr>
+                        <td>\(a(x) = +1\)</td>
+                        <td>TP</td>
+                        <td>FP</td>
+                    </tr>
+                    <tr>
+                        <td>\(a(x) = -1\)</td>
+                        <td>FN</td>
+                        <td>TN</td>
+                    </tr>
+                </table>
+
+                <h4>Precision и Recall</h4>
+                <p>\[\text{precision} = \frac{TP}{TP + FP}\] — насколько доверять модели, когда она говорит \(+1\).</p>
+                <p>\[\text{recall} = \frac{TP}{TP + FN}\] — насколько модель покрывает положительный класс.</p>
+
+                <h4>F1-Score</h4>
+                <p>Среднее арифметическое и минимум плохо агрегируют precision и recall. Стандарт — среднее гармоническое:</p>
+                <p>\[F_1 = 2 \cdot \frac{\text{precision} \cdot \text{recall}}{\text{precision} + \text{recall}}\]</p>
+                <p>Обобщённый \(F_\alpha\) позволяет смещать баланс в сторону precision или recall:</p>
+                <p>\[F_\alpha = \frac{(1 + \alpha^2) \cdot \text{precision} \cdot \text{recall}}{\alpha^2 \cdot \text{precision} + \text{recall}}\]</p>
+
+                <h4>Lift</h4>
+                <p>\[\text{Lift} = \frac{\text{precision}}{\frac{TP + FP}{\ell}}\]</p>
+                <p>Показывает, во сколько раз эффективнее использовать модель по сравнению со случайным выбором. Применяется в задачах оттока клиентов.</p>
+
+                <h3>ROC-кривая и AUC-ROC</h3>
+                <p>Модель выдаёт уверенность \(b(x)\), финальное предсказание: \(a(x) = \text{sign}(b(x) - t)\). Перебираем все пороги \(t\) и строим кривую:</p>
+                <ul class="content-list">
+                    <li>\(\text{FPR} = \frac{FP}{FP + TN}\) — доля ложных срабатываний.</li>
+                    <li>\(\text{TPR} = \frac{TP}{TP + FN}\) — доля верно найденных положительных.</li>
+                </ul>
+                <p>AUC-ROC — площадь под ROC-кривой. Интерпретируется как доля инверсий: вероятность того, что случайный положительный объект получит более высокий скор, чем случайный отрицательный.</p>
+
+                <div class="warn-block">
+                    AUC-ROC может вводить в заблуждение при сильном дисбалансе классов: добавление простых отрицательных примеров улучшает метрику, хотя модель не становится лучше. В таких случаях используют PR-кривую (Precision-Recall), которая лучше учитывает баланс классов.
+                </div>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; 2026 НейроЦелитель</div>
+</div>
+</body>
+</html>

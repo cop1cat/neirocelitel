@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Процессы — НейроЦелитель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/theory.css">
+</head>
+<body>
+<div id="wrapper">
+    <div id="header">
+        <h1>НейроЦелитель</h1>
+    </div>
+    <div id="nav">
+        <a href="../index.html">Главная</a>
+        <a href="../memes/index.html">Мемы</a>
+        <a href="../classical-ml/index.html">Классический ML</a>
+        <a href="../neural-nets/index.html">Нейросети</a>
+        <a href="index.html" class="active">ОС</a>
+    </div>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-block">
+                <h3>Темы</h3>
+                <ul>
+                    <li><a href="unix-basics.html">Основы UNIX</a></li>
+                    <li><a href="processes.html">Процессы</a></li>
+                    <li><a href="filesystem.html">Файловая система</a></li>
+                    <li><a href="ipc.html">IPC</a></li>
+                    <li><a href="sockets.html">Сокеты</a></li>
+                    <li><a href="shell.html">Shell</a></li>
+                    <li><a href="windows-nt.html">Windows NT</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="content-block">
+                <h2>Процессы</h2>
+
+                <h3>Что такое процесс</h3>
+                <p>Процесс — программа в стадии выполнения со всеми регистрами и счётчиком команд. У каждого процесса есть адресное пространство — набор адресов ячеек памяти, необходимых для его выполнения.</p>
+
+                <h3>system()</h3>
+                <pre class="code-block">int system(char *com);</pre>
+                <p>Запускает новую программу в рамках потока и приостанавливает выполнение текущей до её завершения.</p>
+                <ul class="content-list">
+                    <li><code>char *com</code> — указатель на командную строку.</li>
+                    <li>Возвращает 1 при успехе, -1 при ошибке.</li>
+                </ul>
+                <pre class="code-block">system("cp a.c b.c");
+system("./a.exe");</pre>
+                <div class="warn-block">
+                    Не используется в системных утилитах — множит процессы.
+                </div>
+
+                <h3>execl()</h3>
+                <pre class="code-block">int execl(char *path, char *arg_0, ..., char *arg_n, NULL);</pre>
+                <p>Замещает текущий процесс новым. Программа досрочно заканчивает выполнение.</p>
+                <ul class="content-list">
+                    <li><code>char *path</code> — полное имя программы.</li>
+                    <li><code>char *arg_0</code> — нулевой аргумент (имя самой программы).</li>
+                    <li><code>NULL</code> — признак конца списка аргументов.</li>
+                    <li>Возвращает -1 только в случае ошибки (иначе не возвращает управление).</li>
+                </ul>
+                <pre class="code-block">execl("./a.exe", "a.exe", NULL);
+execl("/bin/cp", "cp", "a.c", "b.c", NULL);</pre>
+
+                <h3>fork()</h3>
+                <pre class="code-block">int fork(void);</pre>
+                <p>Создаёт дочерний процесс — точную копию родительского, за исключением:</p>
+                <ul class="content-list">
+                    <li>Дочерний процесс получает уникальный PID.</li>
+                    <li>У дочернего процесса другой PPID (идентификатор родителя).</li>
+                    <li>Дочерний процесс получает свою копию дескрипторов родителя.</li>
+                </ul>
+                <p>Возвращает 0 дочернему процессу, PID дочернего — родителю, -1 при ошибке.</p>
+                <pre class="code-block">int p = fork();
+if (p > 0) {
+    /* процесс-отец */
+} else if (p == 0) {
+    /* процесс-сын */
+} else {
+    /* авария */
+}</pre>
+                <div class="warn-block">
+                    Осторожно с fork() в бесконечных циклах — можно создать fork-бомбу.
+                </div>
+
+                <h3>wait() и waitpid()</h3>
+                <pre class="code-block">int wait(int *s);</pre>
+                <p>Используется в процессе-отце для ожидания завершения процесса-сына. Возвращает PID завершившегося сына, в аргумент записывает причину завершения.</p>
+                <pre class="code-block">int s;
+if (fork() == 0) {
+    execl("/bin/ls", "ls", NULL);
+} else {
+    wait(&s);
+}</pre>
+
+                <h3>Завершение процесса</h3>
+                <p>В UNIX процесс может быть завершён двумя способами:</p>
+                <ul class="content-list">
+                    <li>Системным вызовом <code>_exit()</code> или библиотечной функцией <code>exit()</code>.</li>
+                    <li>Сигналом (их более 40, бывают внешние и внутренние).</li>
+                </ul>
+
+                <pre class="code-block">int _exit(int arg);
+int exit(int arg);  /* #include &lt;stdlib.h&gt; */</pre>
+
+                <p>Разница между <code>_exit()</code> и <code>exit()</code>:</p>
+                <table class="compare-table">
+                    <tr>
+                        <th>_exit()</th>
+                        <th>exit()</th>
+                    </tr>
+                    <tr>
+                        <td>Системный вызов</td>
+                        <td>Библиотечная функция</td>
+                    </tr>
+                    <tr>
+                        <td>Не выталкивает буферы ввода/вывода</td>
+                        <td>Выталкивает буферы ввода/вывода</td>
+                    </tr>
+                </table>
+                <pre class="code-block">/* _exit не выталкивает буфер printf */
+printf("Hello ");
+write(1, "my friend", 9);
+_exit(1);
+/* Вывод: my friend */
+
+/* exit выталкивает буфер printf */
+printf("Hello ");
+write(1, "my friend", 9);
+exit(1);
+/* Вывод: my friendHello */</pre>
+                <div class="note-block">
+                    Только <code>write()</code> и <code>read()</code> работают без буферизации.
+                </div>
+
+                <h3>Структура пользовательского процесса</h3>
+                <ul class="content-list">
+                    <li><strong>Контекст процесса</strong> — информация о текущем состоянии.</li>
+                    <li><strong>Статический сегмент данных</strong> — глобальные и статические переменные.</li>
+                    <li><strong>Процедурный сегмент</strong> — программный код.</li>
+                    <li><strong>Динамический сегмент</strong> — динамические структуры данных (куча).</li>
+                </ul>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="index.html" style="color: #1a5276; font-size: 12px;">← Назад к списку тем</a>
+            </div>
+        </div>
+    </div>
+    <div id="footer">Copyright &copy; <span id="year"></span> НейроЦелитель</div>
+    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</div>
+</body>
+</html>
