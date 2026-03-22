@@ -1,5 +1,5 @@
 services:
-  site:
+  docs:
     build: .
     ports:
       - "80:80"
